@@ -40,6 +40,7 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,pause_du
     K_F = 1.97*10^-6;
     K_M = 2.88*10^-7;
     mu = atan(K_M/(l1*K_F));
+    phi_trim = atan(-l2*K_M/(l1*(l1+l2)*K_F));
     rc = 0.1;
     rx = rc*cos(linspace(0,2*pi,20));
     rx = [rx rx(1)];
@@ -61,7 +62,7 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,pause_du
 
         k = j*1;
         % obtain rotational matrix for current RPY angles
-        Rt = R(X(k,4:6)); 
+        Rt = R(X(k,4:6),phi_trim); 
         Rmu = R_mu(mu,U(k));
 
         % define each tricopter rotor
@@ -102,7 +103,7 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,pause_du
     end
     
     % Function to determine the rotation matrix for plotting
-    function y = R(Xrot)
+    function y = R(Xrot,phi_trim)
         
         phi = Xrot(1);
         theta = Xrot(2);
@@ -119,8 +120,8 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,pause_du
 
         % rotation around x with phi 
         Rphi = [1       0           0;
-                0       cos(phi)    -sin(phi);
-                0       sin(phi)    cos(phi)];
+                0       cos(phi+phi_trim)    -sin(phi+phi_trim);
+                0       sin(phi+phi_trim)    cos(phi+phi_trim)];
 
         y=Rpsi*Rtheta*Rphi;
     end
@@ -128,9 +129,13 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,pause_du
     % Function for the extra rotor 1 rotation
     function y = R_mu(mu,U)
         
-        y = [cos(mu+U)    0       sin(mu+U);
-             0             1       0;
-            -sin(mu+U)    0       cos(mu+U)];
+        % y = [cos(mu+U)    0       sin(mu+U);
+        %      0             1       0;
+        %     -sin(mu+U)    0       cos(mu+U)];
+
+        y = [1       0           0;
+                0       cos(mu+U)    -sin(mu+U);
+                0       sin(mu+U)    cos(mu+U)];
 
     end
     
