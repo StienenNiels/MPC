@@ -52,8 +52,8 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,pause_du
     clf;
     
     % define plot axes limits
-    w = 2;
-    wz = 2;
+    w = 1;
+    wz = 1;
     
     Ax = [-w+x_r w+x_r -w+y_r w+y_r -wz+z_r wz+z_r];
 

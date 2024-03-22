@@ -23,7 +23,7 @@ C = sysd.C;
 
 %% LINEAR QUADRATIC REGULATOR
 
-x0 = [0 0 0 0 0 0 0 0 0 1 1 1]';
+x0 = [0 0 0 0 0 0 0 0 0 0.3 0.3 0.3]';
 
 r = [ 0*linspace(1,2,(T+1));
       0*ones(1,(T+1));
@@ -48,8 +48,9 @@ x(:,1) = x0';
 %% Prediction model and cost function
 % prediction horizon
 N = 20; 
-Q = blkdiag(1,1,10,0.1*eye(6),1*eye(2),100);
-R = 0.0001*blkdiag(1,1,1,1);
+% Q = 100*blkdiag(1,1,10,eye(6),100*eye(2),500);
+Q = 100*blkdiag(1,1,10,eye(5),10,100*eye(2),500);
+R = 0.001*blkdiag(1,1,1,1);
 
 Qbar = kron(Q,eye(N));
 Rbar = kron(R,eye(N));
@@ -80,6 +81,9 @@ mu = atan(K_M/(l1*K_F));
 u_cont_up = [1000;1000;1000;pi/2-mu];
 u_cont_low = [-1000;-1000;-1000;-pi/2-mu];
 
+%State contstraints
+x_cont =
+
 for k = 1:1:T
     t(k) = (k-1)*dt;
     if ( mod(t(k),1) == 0 ) 
@@ -96,11 +100,11 @@ for k = 1:1:T
         variable u_N(4*N)
         minimize ( (1/2)*quad_form(u_N,H) + h'*u_N )
         % input constraints
-        u_N <=  u_cont_up(ones(4*N,1));
-        u_N >= u_cont_low(ones(4*N,1));
-        % % state constraints
-        % Z*u_N <= -P*x0 + x_lim_vec_full;
-        % Z*u_N >= -P*x0 - x_lim_vec_full; 
+        u_N <= repmat(u_cont_up,[N 1]);
+        u_N >= repmat(u_cont_low,[N 1]);
+        % state constraints
+        S*u_N <= -P*x0 + repmat(x_cont,[N 1]);
+        S*u_N >= -P*x0 - repmat(x_cont,[N 1]);
     cvx_end
     
     u(:,k) = u_N(1:4); % MPC control action
