@@ -30,9 +30,9 @@ x0 = [0 0 0 0 0 0 0 0 0 1 1 1]';
 %       zeros(1,(T+1));
 %       zeros(1,(T+1))];
 
-r = [ ones(1,(T+1));
-      ones(1,(T+1));
-      ones(1,(T+1))];
+r = [ 0*linspace(1,2,(T+1));
+      0*ones(1,(T+1));
+      0*ones(1,(T+1))];
   
 Q = blkdiag(1,1,10,0.1*eye(6),1*eye(2),100);
 R = 0.0001*blkdiag(1,1,1,1);
@@ -103,7 +103,7 @@ plot_2D_plots(t, states_trajectory, control_inputs);
 % show 3D simulation
 X = states_trajectory(:,[10 11 12 7 8 9]);
 U = control_inputs(:,4);
-visualize_tricopter_trajectory(X,U,0.01);
+visualize_tricopter_trajectory(X,U,0)%.01);
 
 saved_data.t = t;
 saved_data.x = states_trajectory;
