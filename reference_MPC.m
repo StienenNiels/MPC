@@ -21,9 +21,10 @@ A = sysd.A;
 B = sysd.B;
 C = sysd.C;
 
-%% LINEAR QUADRATIC REGULATOR
+%% Model predictive control
 
 x0 = [0 0 0 0 0 0 0 0 0 1 1 1]';
+%[u v w phi theta psi p q r X_b Y_b Z_b]
 
 r = [ 0*linspace(1,2,(T+1));
       0*ones(1,(T+1));
