@@ -23,7 +23,7 @@ C = sysd.C;
 
 %% LINEAR QUADRATIC REGULATOR
 
-x0 = [0 0 0 0 0 0 0 0 0 0.3 0.3 0.3]';
+x0 = [0 0 0 0 0 0 0 0 0 1 1 1]';
 
 r = [ 0*linspace(1,2,(T+1));
       0*ones(1,(T+1));
@@ -59,9 +59,13 @@ dim.N = N;
 dim.nx = size(A,1);
 dim.nu = size(B,2);
 dim.ny = size(C,1);
+dim.ncy = 3;
 
-[P,S]=predmodgen(sysd,dim);            %Generation of prediction model 
+[P,Pcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
 [H,h,const]=costgen(P,S,Q,R,dim,x0);  %Writing cost function in quadratic form
+
+Pcon = P;
+Scon = S;
 
 %%
 % mu trim
@@ -82,7 +86,9 @@ u_cont_up = [1000;1000;1000;pi/2-mu];
 u_cont_low = [-1000;-1000;-1000;-pi/2-mu];
 
 %State contstraints
-x_cont =
+x_cont = [1e6; 1e6; 1e6; pi/2;pi/2;2*pi; 1e6; 1e6; 1e6; 1e6; 1e6; 1e6];
+size(repmat(x_cont,[N 1]))
+size(P*x0)
 
 for k = 1:1:T
     t(k) = (k-1)*dt;
@@ -103,8 +109,8 @@ for k = 1:1:T
         u_N <= repmat(u_cont_up,[N 1]);
         u_N >= repmat(u_cont_low,[N 1]);
         % state constraints
-        S*u_N <= -P*x0 + repmat(x_cont,[N 1]);
-        S*u_N >= -P*x0 - repmat(x_cont,[N 1]);
+        Scon*u_N <= -Pcon*x0 + repmat(x_cont,[N 1]);
+        Scon*u_N >= -Pcon*x0 - repmat(x_cont,[N 1]);
     cvx_end
     
     u(:,k) = u_N(1:4); % MPC control action
@@ -127,7 +133,7 @@ plot_2D_plots(t, states_trajectory, control_inputs);
 % show 3D simulation
 X = states_trajectory(:,[10 11 12 7 8 9]);
 u_cont = control_inputs(:,4);
-visualize_tricopter_trajectory(X,u_cont,0)%.01);
+visualize_tricopter_trajectory(X,u_cont,0.1);
 
 saved_data.t = t;
 saved_data.x = states_trajectory;
