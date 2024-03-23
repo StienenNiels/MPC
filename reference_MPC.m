@@ -25,17 +25,6 @@ C = sysd.C;
 %[u v w phi theta psi p q r X_b Y_b Z_b]
 x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
-
-r = [ 0*linspace(1,2,(T+1));
-      0*ones(1,(T+1));
-      0*ones(1,(T+1))];
-
-% B_ref relates reference to states x_ref = B_ref*r
-B_ref = zeros(12,3);
-B_ref(10,1) = 1;
-B_ref(11,2) = 1;
-B_ref(12,3) = 1;
-
 x = zeros(length(A(:,1)),T);
 u = zeros(length(B(1,:)),T);
 y = zeros(length(C(:,1)),T);
@@ -49,9 +38,9 @@ x(:,1) = x0';
 %% Prediction model and cost function
 % prediction horizon
 N = 20; 
-% Q = 100*blkdiag(1,1,10,eye(6),100*eye(2),500);
-Q = 100*blkdiag(1,1,10,eye(5),10,100*eye(2),500);
-R = 0.001*blkdiag(1,1,1,1);
+%[u v w phi theta psi p q r X_b Y_b Z_b]
+Q = 100*blkdiag(1,1,10,1,1,20,1,1,50,100,100,500);
+R = 0*blkdiag(1,1,1,1);
 
 Qbar = kron(Q,eye(N));
 Rbar = kron(R,eye(N));
@@ -73,12 +62,6 @@ K_M = 2.88*10^-7;
 l1 = 0.2483;
 mu = atan(K_M/(l1*K_F));
 
-% % Separate saturation limits per input
-% u_cont = @(s) [min(max(s, -1000), 1000); 
-%                      min(max(s, -1000), 1000); 
-%                      min(max(s, -1000), 1000); 
-%                      min(max(s, -pi/2-mu), pi/2-mu)];
-
 %Input constraints
 u_cont_up = [1000;1000;1000;pi/2-mu];
 u_cont_low = [-1000;-1000;-1000;-pi/2-mu];
@@ -93,8 +76,7 @@ for k = 1:1:T
     end
 
     % determine reference states based on reference input r
-    x_ref = B_ref*r(:,k);
-    x0 = x(:,k) - x_ref;
+    x0 = x(:,k);
     [~,h,~]=costgen(P,S,Q,R,dim,x0);
 
     % compute control action
@@ -112,7 +94,7 @@ for k = 1:1:T
     u(:,k) = u_N(1:4); % MPC control action
 
     % apply control action
-    x(:,k+1) = A*x(:,k) + B*u(:,k) - B_ref*r(:,k);
+    x(:,k+1) = A*x(:,k) + B*u(:,k);
     y(:,k) = C*x(:,k);
 end
 
