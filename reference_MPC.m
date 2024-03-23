@@ -1,4 +1,4 @@
-%% TRICOPTER LQR STABILIZING
+%% TRICOPTER MPC STABILIZING
 
 %% INIT
 clc
@@ -22,9 +22,9 @@ B = sysd.B;
 C = sysd.C;
 
 %% Model predictive control
-
-x0 = [0 0 0 0 0 0 0 0 0 1 1 1]';
 %[u v w phi theta psi p q r X_b Y_b Z_b]
+x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
+
 
 r = [ 0*linspace(1,2,(T+1));
       0*ones(1,(T+1));
@@ -85,8 +85,6 @@ u_cont_low = [-1000;-1000;-1000;-pi/2-mu];
 
 %State contstraints
 x_cont = [pi/2;pi/2;2*pi];
-size(repmat(x_cont,[N 1]))
-size(P*x0)
 
 for k = 1:1:T
     t(k) = (k-1)*dt;
@@ -118,11 +116,12 @@ for k = 1:1:T
     y(:,k) = C*x(:,k);
 end
 
+%%
 % states_trajectory: Nx12 matrix of trajectory of 12 states
 states_trajectory = y';
 control_inputs = u';
 
-%% PLOT RESULTS
+% PLOT RESULTS
 % plot 2D results
 plot_2D_plots(t, states_trajectory, control_inputs);
 
@@ -136,3 +135,12 @@ visualize_tricopter_trajectory(X,u_cont,0.1);
 saved_data.t = t;
 saved_data.x = states_trajectory;
 saved_data.u = u;
+
+
+%% Nonlinear dynamics graveyard
+% xk = x(:,k);
+% uk = u(:,k);
+% 
+% ODEFUN = @(t,xk) nonlinear_dynamics(xk,uk);
+% [TOUT,XOUT] = ode45(ODEFUN,[0 dt], x(:,k));
+% x(:,k+1) = XOUT(end,:);
