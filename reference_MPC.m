@@ -43,34 +43,10 @@ sysd = c2d(sysc,dt);
 
 A = sysd.A;
 B = sysd.B;
-C = sysd.C;
+% C = sysd.C;
 
 %% Implement rate of change penalty
-% Augment the state with the previous control action
-% This allows us to formulate it as a standard LQR problem with cross
-% terms.
-% For reference look at exercise set 2, problem 5
-% x is now 16 states being: [u v w phi theta psi p q r X_b Y_b Z_b Omega1 Omega2 Omega3 mu]
-n_x = size(A,1);
-n_u = size(B,2);
-
-Pdare = idare(A,B,Q,R);
-
-A = [A, zeros(n_x,n_u);
-     zeros(n_u,n_x), zeros(n_u,n_u)];
-B = [B; eye(n_u)];
-C = eye(n_x+n_u);
-
-Q = [Q,zeros(n_x,n_u);
-     zeros(n_u,n_x),L];
-R = R+L;
-M = -[zeros(n_u);L];
-SM = size(M);
-Pdare = [Pdare,zeros(n_x,n_u);
-         zeros(n_u,n_x),L];
-
-x0 = [x0;0;0;0;0];
-
+[A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q,R,L,x0);
 sysd = ss(A,B,C,[],dt);
 
 %% Model predictive control
@@ -92,7 +68,7 @@ dim.ny = size(C,1);
 dim.ncy = 3;
 
 [T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
-[H,h,const]=costgen(T,S,Q,R,dim,x0,Pdare,M);  %Writing cost function in quadratic form
+[H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);  %Writing cost function in quadratic form
 
 %%
 for k = 1:1:Tvec
@@ -103,7 +79,7 @@ for k = 1:1:Tvec
 
     % determine reference states based on reference input r
     x0 = x(:,k);
-    [~,h,~]=costgen(T,S,Q,R,dim,x0,Pdare,M);
+    [~,h,~]=costgen(T,S,Q,R,dim,x0,P,M);
 
     % compute control action
     cvx_begin quiet
