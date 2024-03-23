@@ -4,44 +4,80 @@
 clc
 clear
 
+%% Tunable variables/parameters
+dt = 0.1;
+% simulation time
+simTime = 5;
+
+% Initial conditions
+%[u v w phi theta psi p q r X_b Y_b Z_b]
+x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
+
+% prediction horizon
+N = 20; 
+
+% State weights
+%[u v w phi theta psi p q r X_b Y_b Z_b]
+Q = 100*blkdiag(1,1,10,1,1,20,1,1,50,100,100,500);
+
+% Input weights
+R = 0*blkdiag(1,1,1,1);
+
+% Rate of change input weights
+L = 0.1*blkdiag(1,1,1,1);
+
 %% DEFINE STATE SPACE SYSTEM
 sysc = init_ss_cont();
 check_controllability(sysc);
 
 %% DISCRETIZE SYSTEM
-
-dt = 0.1;
-% simulation time
-simTime = 5;
-T = simTime/dt;
-
+Tvec = simTime/dt;
 sysd = c2d(sysc,dt);
 
 A = sysd.A;
 B = sysd.B;
 C = sysd.C;
 
+%% Implement rate of change penalty
+% Augment the state with the previous control action
+% This allows us to formulate it as a standard LQR problem with cross
+% terms.
+% For reference look at exercise set 2, problem 5
+% x is now 16 states being: [u v w phi theta psi p q r X_b Y_b Z_b Omega1 Omega2 Omega3 mu]
+n_x = size(A,1);
+n_u = size(B,2);
+
+Pdare = idare(A,B,Q,R);
+
+A = [A, zeros(n_x,n_u);
+     zeros(n_u,n_x), zeros(n_u,n_u)];
+B = [B; eye(n_u)];
+C = eye(n_x+n_u);
+
+Q = [Q,zeros(n_x,n_u);
+     zeros(n_u,n_x),L];
+R = R+L;
+M = -[zeros(n_u);L];
+SM = size(M);
+Pdare = [Pdare,zeros(n_x,n_u);
+         zeros(n_u,n_x),L];
+
+x0 = [x0;0;0;0;0];
+
+sysd = ss(A,B,C,[],dt);
+
 %% Model predictive control
-%[u v w phi theta psi p q r X_b Y_b Z_b]
-x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
+x = zeros(length(A(:,1)),Tvec);
+u = zeros(length(B(1,:)),Tvec);
+y = zeros(length(C(:,1)),Tvec);
+t = zeros(1,Tvec);
 
-x = zeros(length(A(:,1)),T);
-u = zeros(length(B(1,:)),T);
-y = zeros(length(C(:,1)),T);
-t = zeros(1,T);
-
-Vf = zeros(1,T);                % terminal cost sequence
-l = zeros(1,T);                 % stage cost sequence
+Vf = zeros(1,Tvec);                % terminal cost sequence
+l = zeros(1,Tvec);                 % stage cost sequence
 
 x(:,1) = x0';
 
 %% Prediction model and cost function
-% prediction horizon
-N = 20; 
-%[u v w phi theta psi p q r X_b Y_b Z_b]
-Q = 100*blkdiag(1,1,10,1,1,20,1,1,50,100,100,500);
-R = 0*blkdiag(1,1,1,1);
-
 Qbar = kron(Q,eye(N));
 Rbar = kron(R,eye(N));
 
@@ -51,8 +87,8 @@ dim.nu = size(B,2);
 dim.ny = size(C,1);
 dim.ncy = 3;
 
-[P,Pcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
-[H,h,const]=costgen(P,S,Q,R,dim,x0);  %Writing cost function in quadratic form
+[T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
+[H,h,const]=costgen(T,S,Q,R,dim,x0,Pdare,M);  %Writing cost function in quadratic form
 
 %%
 % mu trim
@@ -69,7 +105,7 @@ u_cont_low = [-1000;-1000;-1000;-pi/2-mu];
 %State contstraints
 x_cont = [pi/2;pi/2;2*pi];
 
-for k = 1:1:T
+for k = 1:1:Tvec
     t(k) = (k-1)*dt;
     if ( mod(t(k),1) == 0 ) 
         fprintf('t = %d sec \n', t(k));
@@ -77,7 +113,7 @@ for k = 1:1:T
 
     % determine reference states based on reference input r
     x0 = x(:,k);
-    [~,h,~]=costgen(P,S,Q,R,dim,x0);
+    [~,h,~]=costgen(T,S,Q,R,dim,x0,Pdare,M);
 
     % compute control action
     cvx_begin quiet
@@ -87,8 +123,8 @@ for k = 1:1:T
         u_N <= repmat(u_cont_up,[N 1]);
         u_N >= repmat(u_cont_low,[N 1]);
         % state constraints
-        Scon*u_N <= -Pcon*x0 + repmat(x_cont,[N 1]);
-        Scon*u_N >= -Pcon*x0 - repmat(x_cont,[N 1]);
+        Scon*u_N <= -Tcon*x0 + repmat(x_cont,[N 1]);
+        Scon*u_N >= -Tcon*x0 - repmat(x_cont,[N 1]);
     cvx_end
 
     u(:,k) = u_N(1:4); % MPC control action
