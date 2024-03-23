@@ -78,9 +78,6 @@ l = zeros(1,Tvec);                 % stage cost sequence
 x(:,1) = x0';
 
 %% Prediction model and cost function
-Qbar = kron(Q,eye(N));
-Rbar = kron(R,eye(N));
-
 dim.N = N;
 dim.nx = size(A,1);
 dim.nu = size(B,2);
