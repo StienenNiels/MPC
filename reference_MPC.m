@@ -5,9 +5,9 @@ clc
 clear
 
 %% Tunable variables/parameters
-dt = 0.1;
+dt = 0.05;
 % simulation time
-simTime = 5;
+simTime = 3;
 
 % Initial conditions
 %[u v w phi theta psi p q r X_b Y_b Z_b]
@@ -18,13 +18,13 @@ N = 20;
 
 % State weights
 %[u v w phi theta psi p q r X_b Y_b Z_b]
-Q = 100*blkdiag(1,1,10,1,1,20,1,1,50,100,100,500);
+Q = 100*blkdiag(1,1,1,0.1,0.1,0.1,10,10,5,100,100,400);
 
 % Input weights
 R = 0*blkdiag(1,1,1,1);
 
 % Rate of change input weights
-L = 0.1*blkdiag(1,1,1,1);
+L = 0.05*blkdiag(1,1,1,1);
 
 %% DEFINE STATE SPACE SYSTEM
 sysc = init_ss_cont();
