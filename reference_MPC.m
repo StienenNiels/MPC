@@ -26,6 +26,13 @@ R = 0*blkdiag(1,1,1,1);
 % Rate of change input weights
 L = 0.05*blkdiag(1,1,1,1);
 
+%Input constraints
+u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
+u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
+
+%State contstraints
+x_cont = [pi/2;pi/2;2*pi];
+
 %% DEFINE STATE SPACE SYSTEM
 sysc = init_ss_cont(params);
 check_controllability(sysc);
@@ -88,13 +95,6 @@ dim.ncy = 3;
 [H,h,const]=costgen(T,S,Q,R,dim,x0,Pdare,M);  %Writing cost function in quadratic form
 
 %%
-%Input constraints
-u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
-u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
-
-%State contstraints
-x_cont = [pi/2;pi/2;2*pi];
-
 for k = 1:1:Tvec
     t(k) = (k-1)*dt;
     if ( mod(t(k),1) == 0 ) 
