@@ -116,12 +116,11 @@ for k = 1:1:T
     y(:,k) = C*x(:,k);
 end
 
-%%
 % states_trajectory: Nx12 matrix of trajectory of 12 states
 states_trajectory = y';
 control_inputs = u';
 
-% PLOT RESULTS
+%% PLOT RESULTS
 % plot 2D results
 plot_2D_plots(t, states_trajectory, control_inputs);
 
