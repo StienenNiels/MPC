@@ -1,4 +1,4 @@
-function visualize_tricopter_trajectory(states_trajectory,control_input,pause_duration)
+function visualize_tricopter_trajectory(states_trajectory,control_input,params,pause_duration)
     %% VISUALIZE TRICOPTER TRAJECTORY
     %
     % plots the dynamics of the tricopter given the 
@@ -19,7 +19,7 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,pause_du
     % - none 
     
     %% INIT
-    if (nargin == 2)
+    if (nargin == 3)
         pause_duration = 0;
     end
     
@@ -34,13 +34,11 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,pause_du
     z_r = 0;
 
     % tricopter frame and circle drawings
-    l1 = 0.2483;
-    l2 = 0.1241;
-    l3 = 0.2150; 
-    K_F = 1.97*10^-6;
-    K_M = 2.88*10^-7;
-    mu = atan(K_M/(l1*K_F));
-    phi_trim = atan(-l2*K_M/(l1*(l1+l2)*K_F));
+    l1 = params.l1;
+    l2 = params.l2;
+    l3 = params.l3; 
+    mu = params.trim.mu;
+    phi_trim = params.trim.phi;
     rc = 0.1;
     rx = rc*cos(linspace(0,2*pi,20));
     rx = [rx rx(1)];
@@ -128,15 +126,10 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,pause_du
 
     % Function for the extra rotor 1 rotation
     function y = R_mu(mu,U)
-        
-        % y = [cos(mu+U)    0       sin(mu+U);
-        %      0             1       0;
-        %     -sin(mu+U)    0       cos(mu+U)];
 
         y = [1       0           0;
                 0       cos(mu+U)    -sin(mu+U);
                 0       sin(mu+U)    cos(mu+U)];
-
     end
     
 end

@@ -1,33 +1,34 @@
 %% TRICOPTER MPC STABILIZING
-
-%% INIT
 clc
 clear
+run("parameters.m")
 
 %% Tunable variables/parameters
-dt = 0.1;
 % simulation time
 simTime = 5;
+dt = 0.1;
 
 % Initial conditions
-%[u v w phi theta psi p q r X_b Y_b Z_b]
+% [u v w phi theta psi p q r X_b Y_b Z_b]
 x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
 % prediction horizon
 N = 20; 
 
 % State weights
-%[u v w phi theta psi p q r X_b Y_b Z_b]
+% [u v w phi theta psi p q r X_b Y_b Z_b]
 Q = 100*blkdiag(1,1,10,1,1,20,1,1,50,100,100,500);
 
 % Input weights
+% [Omega1 Omega2 Omega3 mu]
 R = 0*blkdiag(1,1,1,1);
 
 % Rate of change input weights
+% d/dt of [Omega1 Omega2 Omega3 mu]
 L = 0.1*blkdiag(1,1,1,1);
 
 %% DEFINE STATE SPACE SYSTEM
-sysc = init_ss_cont();
+sysc = init_ss_cont(params);
 check_controllability(sysc);
 
 %% DISCRETIZE SYSTEM
@@ -88,16 +89,9 @@ dim.ncy = 3;
 [H,h,const]=costgen(T,S,Q,R,dim,x0,Pdare,M);  %Writing cost function in quadratic form
 
 %%
-% mu trim
-% Parameters
-K_F = 1.97*10^-6;
-K_M = 2.88*10^-7;
-l1 = 0.2483;
-mu = atan(K_M/(l1*K_F));
-
 %Input constraints
-u_cont_up = [1000;1000;1000;pi/2-mu];
-u_cont_low = [-1000;-1000;-1000;-pi/2-mu];
+u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
+u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
 
 %State contstraints
 x_cont = [pi/2;pi/2;2*pi];
@@ -139,22 +133,11 @@ control_inputs = u';
 % plot 2D results
 plot_2D_plots(t, states_trajectory, control_inputs);
 
-% plot_inputs(t,u,0.1);
-
 % show 3D simulation
 X = states_trajectory(:,[10 11 12 7 8 9]);
 u_cont = control_inputs(:,4);
-visualize_tricopter_trajectory(X,u_cont,0.1);
+visualize_tricopter_trajectory(X,u_cont,params,0.1);
 
 saved_data.t = t;
 saved_data.x = states_trajectory;
 saved_data.u = u;
-
-
-%% Nonlinear dynamics graveyard
-% xk = x(:,k);
-% uk = u(:,k);
-% 
-% ODEFUN = @(t,xk) nonlinear_dynamics(xk,uk);
-% [TOUT,XOUT] = ode45(ODEFUN,[0 dt], x(:,k));
-% x(:,k+1) = XOUT(end,:);

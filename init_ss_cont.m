@@ -1,16 +1,16 @@
-function sysc = init_ss_cont()
+function sysc = init_ss_cont(params)
     
     % Parameters
-    K_F = 1.97*10^-6;
-    K_M = 2.88*10^-7;
-    l1 = 0.2483;
-    l2 = 0.1241;
-    l3 = 0.2150;
-    I_xx = 0.0239;
-    I_yy = 0.01271;
-    I_zz = 0.01273;
-    m = 1.1;
-    g = 9.81;
+    K_F = params.K_F;
+    K_M = params.K_M;
+    l1 = params.l1;
+    l2 = params.l2;
+    l3 = params.l3;
+    I_xx = params.I_xx;
+    I_yy = params.I_yy;
+    I_zz = params.I_zz;
+    m = params.m;
+    g = params.g;
     
     % Linearize around trim conditions
     u = 0;
@@ -19,13 +19,13 @@ function sysc = init_ss_cont()
     p = 0;
     q = 0;
     r = 0;
-    psi = 0;
-    theta = 0;
-    phi = atan(-l2*K_M/(l1*(l1+l2)*K_F));
-    mu = atan(K_M/(l1*K_F));
-    Omega1 = sqrt(l2*g*m*cos(phi)/((l1+l2)*K_F*cos(mu)));
-    Omega2 = sqrt(l1*g*m*cos(phi)/(2*(l1+l2)*K_F));
-    Omega3 = Omega2;
+    psi = params.trim.psi;
+    theta = params.trim.theta;
+    phi = params.trim.phi;
+    mu = params.trim.mu;
+    Omega1 = params.trim.Omega1;
+    Omega2 = params.trim.Omega2;
+    Omega3 = params.trim.Omega3;
 
     % Refer to dynamics_livescript_jacobian
     A = [0, r, -q, 0, -g*cos(theta), 0, 0, -w, v, 0, 0, 0; 
