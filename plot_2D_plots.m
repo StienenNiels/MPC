@@ -19,29 +19,29 @@ function plot_2D_plots(time, states_trajectory, control_inputs)
         ylabel('$w$ [m/s]','interpreter','latex');
 
         subplot(6,2,7);
-        stairs(time, states_trajectory(:,4), 'b-');  grid();
+        stairs(time, states_trajectory(:,7), 'b-');  grid();
         ylabel('$p$ [rad/s]','interpreter','latex');
 
         subplot(6,2,9);
-        stairs(time, states_trajectory(:,5), 'k-');  grid();
+        stairs(time, states_trajectory(:,8), 'k-');  grid();
         ylabel('$q$ [rad/s]','interpreter','latex');
 
         subplot(6,2,11);
-        stairs(time, states_trajectory(:,6), 'k-');  grid();
+        stairs(time, states_trajectory(:,9), 'k-');  grid();
         ylabel('$r$ [rad/s]','interpreter','latex');
 
         xlabel('Time [s]');
 
         subplot(6,2,8);
-        stairs(time, states_trajectory(:,7), 'm-');  grid();
+        stairs(time, states_trajectory(:,4), 'm-');  grid();
         ylabel('$\phi$ [rad]','interpreter','latex');
 
         subplot(6,2,10);
-        stairs(time, states_trajectory(:,8), 'm-');  grid();
+        stairs(time, states_trajectory(:,5), 'm-');  grid();
         ylabel('$\theta$ [rad]','interpreter','latex');
 
         subplot(6,2,12);
-        stairs(time, states_trajectory(:,9), 'b-');  grid();
+        stairs(time, states_trajectory(:,6), 'b-');  grid();
         ylabel('$\psi$ [rad]','interpreter','latex');
 
         xlabel('Time [s]');

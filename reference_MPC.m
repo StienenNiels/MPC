@@ -64,9 +64,6 @@ dim.ncy = 3;
 [P,Pcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
 [H,h,const]=costgen(P,S,Q,R,dim,x0);  %Writing cost function in quadratic form
 
-Pcon = P;
-Scon = S;
-
 %%
 % mu trim
 % Parameters
@@ -86,7 +83,7 @@ u_cont_up = [1000;1000;1000;pi/2-mu];
 u_cont_low = [-1000;-1000;-1000;-pi/2-mu];
 
 %State contstraints
-x_cont = [1e6; 1e6; 1e6; pi/2;pi/2;2*pi; 1e6; 1e6; 1e6; 1e6; 1e6; 1e6];
+x_cont = [pi/2;pi/2;2*pi];
 size(repmat(x_cont,[N 1]))
 size(P*x0)
 
@@ -112,7 +109,7 @@ for k = 1:1:T
         Scon*u_N <= -Pcon*x0 + repmat(x_cont,[N 1]);
         Scon*u_N >= -Pcon*x0 - repmat(x_cont,[N 1]);
     cvx_end
-    
+
     u(:,k) = u_N(1:4); % MPC control action
 
     % apply control action
