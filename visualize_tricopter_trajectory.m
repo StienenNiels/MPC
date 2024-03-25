@@ -1,9 +1,9 @@
-function visualize_tricopter_trajectory(states_trajectory,control_input,params,pause_duration)
+function visualize_tricopter_trajectory(states_trajectory,control_input,params,payload,pause_duration)
     % plots the trajectory of the tricopter given the 
     % provided states_trajectory and control_inputs
     
     %% INIT
-    if (nargin == 3)
+    if (nargin == 4)
         pause_duration = 0;
     end
 
@@ -28,6 +28,11 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,params,p
     rx = [rx rx(1)];
     ry = rc*sin(linspace(0,2*pi,20));
     ry = [ry ry(1)];
+
+    % Payload mass
+    m_payload = 0.2*params.m;
+    P1_acc = 0;
+    P1_vel = 0;
     
     % init figure
     figure(42);
@@ -57,7 +62,17 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,params,p
         A2 = Rt*([-l2 -l2; -l3 l3;0 0]) + X(k,1:3)';
 
         % define payload
-        P1 = X(k,1:3)';
+        if payload && k>50
+            if P1(3) < 0.9*wz
+                P1_acc = m_payload*params.g;
+                P1_vel = P1_acc*0.1 + P1_vel;
+                P1 = P1 + [0;0;P1_vel*0.1];
+            else
+                P1 = [P1(1:2);wz];
+            end
+        else
+            P1 = X(k,1:3)';
+        end
         
         % plot coordinate reference
         plot3( x_r,y_r,z_r,'r.');

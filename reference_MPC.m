@@ -126,7 +126,8 @@ plot_2D_plots(t, states_trajectory, control_inputs, params);
 % plot_cost_function(t,Vf,l);
 
 % show 3D simulation
-visualize_tricopter_trajectory(states_trajectory,control_inputs,params,0.1);
+% Timestep of payload drop is hardcoded for now
+visualize_tricopter_trajectory(states_trajectory,control_inputs,params,payload,0.1);
 
 saved_data.t = t;
 saved_data.x = states_trajectory;
