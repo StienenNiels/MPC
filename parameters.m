@@ -1,5 +1,7 @@
 %% Variables
 m = 1.1; %kg Tricopter mass
+m_payload = rand(1)*0.1+0.1;
+m_total = m + m_payload;
 I_xx = 0.0239; %kgm^2
 I_yy = 0.01271;
 I_zz = 0.01273;
@@ -12,6 +14,8 @@ g = 9.81;
 
 %% Variables
 params.m = m;
+params.m_payload = m_payload;
+params.m_total = m_total;
 params.I_xx = I_xx;
 params.I_yy = I_yy;
 params.I_zz = I_zz;
