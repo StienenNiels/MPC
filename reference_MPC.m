@@ -1,4 +1,4 @@
-%% TRICOPTER MPC STABILIZING
+%% Tricopter MPC stabilizing (nonlinear dynamics)
 clc
 clear
 run("parameters.m")
@@ -34,11 +34,11 @@ u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
 %State contstraints
 x_cont = [pi/2;pi/2;2*pi];
 
-%% DEFINE STATE SPACE SYSTEM
+%% Define state space and check controllability
 sysc = init_ss_cont(params);
 check_controllability(sysc);
 
-%% DISCRETIZE SYSTEM
+%% Discretize system
 Tvec = simTime/dt;
 sysd = c2d(sysc,dt);
 
@@ -106,7 +106,7 @@ end
 states_trajectory = y';
 control_inputs = u';
 
-%% PLOT RESULTS
+%% Plot results
 % plot 2D results
 plot_2D_plots(t, states_trajectory, control_inputs, params);
 
