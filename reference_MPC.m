@@ -18,7 +18,7 @@ N = 50;
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-Q = 100*blkdiag(1,1,1,0.1,0.1,0.1,10,10,5,100,100,400);
+Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,10,100,100,400);
 
 % Input weights
 % [Omega1 Omega2 Omega3 mu]
