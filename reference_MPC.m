@@ -6,7 +6,7 @@ addpath("System_Analysis")
 
 %% Tunable variables/parameters
 % simulation time
-simTime = 1;
+simTime = 10;
 dt = 0.1;
 payload = false;
 
@@ -15,8 +15,8 @@ payload = false;
 x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
 % prediction horizon
-N = 20; 
-control_horizon = 10;
+Np = 20; 
+Nc = 10;
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
@@ -64,7 +64,7 @@ l = zeros(1,Tvec);                 % stage cost sequence
 x(:,1) = x0';
 
 %% Prediction model and cost function
-dim.N = N;
+dim.N = Np;
 dim.nx = size(A,1);
 dim.nu = size(B,2);
 dim.ny = size(C,1);
@@ -74,6 +74,7 @@ dim.ncy = 3;
 [H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);  %Writing cost function in quadratic form
 
 %%
+tic
 for k = 1:1:Tvec
     t(k) = (k-1)*dt;
     if ( mod(t(k),1) == 0 ) 
@@ -86,21 +87,21 @@ for k = 1:1:Tvec
 
     % compute control action
     cvx_begin quiet
-        variable u_N(4*N)
+        variable u_N(4*Np)
+        % Additional constraints to keep the control inputs constant after the first 5 steps
+        for i = Nc+1:Np
+            u_N((i-1)*4+1:i*4) == u_N((Nc-1)*4+1:Nc*4);
+        end
         minimize ( (1/2)*quad_form(u_N,H) + h'*u_N )
         % input constraints
-        u_N <= repmat(u_cont_up,[N 1]);
-        u_N >= repmat(u_cont_low,[N 1]);
+        u_N <= repmat(u_cont_up,[Np 1]);
+        u_N >= repmat(u_cont_low,[Np 1]);
         % state constraints
-        Scon*u_N <= -Tcon*x0 + repmat(x_cont,[N 1]);
-        Scon*u_N >= -Tcon*x0 - repmat(x_cont,[N 1]);
-        % Additional constraints to keep the control inputs constant after the first 5 steps
-        for i = control_horizon+1:N
-            u_N((i-1)*4+1:i*4) == u_N((control_horizon-1)*4+1:control_horizon*4);
-        end
+        Scon*u_N <= -Tcon*x0 + repmat(x_cont,[Np 1]);
+        Scon*u_N >= -Tcon*x0 - repmat(x_cont,[Np 1]);
+        
     cvx_end
 
-    u_N
     u(:,k) = u_N(1:4); % MPC control action
 
     % Simulate payload dropping without changing dynamics mpc uses
@@ -118,6 +119,7 @@ for k = 1:1:Tvec
     Vf(k) = 0.5*x(:,k)'*P*x(:,k);
     l(k) = 0.5*x(:,k)'*Q*x(:,k) + 0.5*u(:,k)'*R*u(:,k) +x(:,k)'*M*u(:,k);
 end
+toc
 
 % states_trajectory: Nx16 matrix of 12 states and 4 inputs over time
 states_trajectory = y';
