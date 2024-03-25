@@ -21,7 +21,7 @@ C = eye(n_x+n_u);
 Q = [Q,zeros(n_x,n_u);
      zeros(n_u,n_x),L];
 R = R+L;
-M = -[zeros(n_u);L];
+M = -[zeros(n_x,n_u);L];
 P = [P,zeros(n_x,n_u);
          zeros(n_u,n_x),L];
 

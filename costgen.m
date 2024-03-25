@@ -10,7 +10,8 @@ function [H,h,c]=costgen(T,S,Q,R,dim,x0,P,M)
 Qbar = kron(eye(dim.N),Q); 
 Qbar(end-dim.nx+1:end,end-dim.nx+1:end) = P;
 Rbar = kron(eye(dim.N),R);
-Mbar = [kron(eye(dim.N),M);zeros(2*dim.N*dim.nu,dim.N*dim.nu)];
+Mbar = [kron(eye(dim.N),M)];
+Mbar(end-dim.nx+1:end,end-dim.nu+1:end) = zeros(dim.nx,dim.nu);
 
 % Calculate H,h,c
 H = Rbar + S'*Qbar*S + 2*S'*Mbar;  

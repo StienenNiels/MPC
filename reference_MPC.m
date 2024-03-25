@@ -14,7 +14,7 @@ dt = 0.1;
 x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
 % prediction horizon
-N = 10; 
+N = 50; 
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
@@ -99,7 +99,15 @@ for k = 1:1:Tvec
     % apply control action  
     x(:,k+1) = simulate_dynamics(x(:,k),u(:,k),dt,params);
     y(:,k) = C*x(:,k);
-    
+
+    % Calculate terminal and stage cost
+    [P,eigvals,K] = dare(A,B,Q,R);
+    Vf(k) = 0.5*x(:,k)'*P*x(:,k);
+    % size(x(:,k)')
+    % size(R)
+    % size(M)
+    % size(u(:,k))
+    l(k) = 0.5*x(:,k)'*Q*x(:,k) + 0.5*u(:,k)'*R*u(:,k) +x(:,k)'*M*u(:,k);
 end
 
 % states_trajectory: Nx16 matrix of 12 states and 4 inputs over time
