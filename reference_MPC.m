@@ -102,7 +102,7 @@ for k = 1:1:Tvec
     
 end
 
-% states_trajectory: Nx12 matrix of trajectory of 12 states
+% states_trajectory: Nx16 matrix of 12 states and 4 inputs over time
 states_trajectory = y';
 control_inputs = u';
 
