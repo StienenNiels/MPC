@@ -88,10 +88,12 @@ for k = 1:1:Tvec
     % compute control action
     cvx_begin quiet
         variable u_N(4*Np)
-        % Additional constraints to keep the control inputs constant after the first 5 steps
-        for i = Nc+1:Np
-            u_N((i-1)*4+1:i*4) == u_N((Nc-1)*4+1:Nc*4);
-        end
+        % Additional constraints to keep the control inputs constant after the first nc steps
+        U_repeat = reshape(u_N(1:4*Nc), 4, []);
+        u_N(4*Nc+1:end) == repmat(U_repeat(:,end), Np-Nc, 1);
+        % for i = Nc+1:Np
+        %     u_N((i-1)*4+1:i*4) == u_N((Nc-1)*4+1:Nc*4);
+        % end
         minimize ( (1/2)*quad_form(u_N,H) + h'*u_N )
         % input constraints
         u_N <= repmat(u_cont_up,[Np 1]);
