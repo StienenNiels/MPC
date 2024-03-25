@@ -1,16 +1,16 @@
-function x_dot = nonlinear_dynamics(x, input)
+function x_dot = nonlinear_dynamics(x, input, params)
 
     % Parameters
-    K_F = 1.97*10^-6;
-    K_M = 2.88*10^-7;
-    l1 = 0.2483;
-    l2 = 0.1241;
-    l3 = 0.2150;
-    I_xx = 0.0239;
-    I_yy = 0.01271;
-    I_zz = 0.01273;
-    m = 1.1;
-    g = 9.81;
+    m = params.m;
+    I_xx = params.I_xx;
+    I_yy = params.I_yy;
+    I_zz = params.I_zz;
+    l1 = params.l1;
+    l2 = params.l2;
+    l3 = params.l3;
+    K_F = params.K_F;
+    K_M = params.K_M;
+    g = params.g;
     
     % States
     u = x(1);
@@ -27,8 +27,6 @@ function x_dot = nonlinear_dynamics(x, input)
     % Z_b = x(12);
 
     % Inputs
-    % We can choose ourselves whether we want the omega squared as input or
-    % not
     O1 = input(1)^2;
     O2 = input(2)^2;
     O3 = input(3)^2;

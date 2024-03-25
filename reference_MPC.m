@@ -2,6 +2,7 @@
 clc
 clear
 run("parameters.m")
+addpath("System_Analysis")
 
 %% Tunable variables/parameters
 % simulation time
@@ -13,7 +14,7 @@ dt = 0.1;
 x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
 % prediction horizon
-N = 20; 
+N = 50; 
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
@@ -95,9 +96,10 @@ for k = 1:1:Tvec
 
     u(:,k) = u_N(1:4); % MPC control action
 
-    % apply control action
-    x(:,k+1) = A*x(:,k) + B*u(:,k);
+    % apply control action  
+    x(:,k+1) = simulate_dynamics(x(:,k),u(:,k),dt,params);
     y(:,k) = C*x(:,k);
+    
 end
 
 % states_trajectory: Nx12 matrix of trajectory of 12 states
