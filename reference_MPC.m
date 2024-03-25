@@ -6,7 +6,7 @@ addpath("System_Analysis")
 
 %% Tunable variables/parameters
 % simulation time
-simTime = 5;
+simTime = 10;
 dt = 0.1;
 
 % Initial conditions
@@ -95,6 +95,11 @@ for k = 1:1:Tvec
     cvx_end
 
     u(:,k) = u_N(1:4); % MPC control action
+
+    % Simulate payload dropping without changing dynamics mpc uses
+    if k == 50
+        params.m = 0.5*params.m;
+    end
 
     % apply control action  
     x(:,k+1) = simulate_dynamics(x(:,k),u(:,k),dt,params);
