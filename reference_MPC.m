@@ -101,12 +101,9 @@ for k = 1:1:Tvec
     y(:,k) = C*x(:,k);
 
     % Calculate terminal and stage cost
-    [P,eigvals,K] = dare(A,B,Q,R);
+    [P,~,~] = dare(A,B,Q,R);
+    % Shouldn't Vf be calculated at xN instead of xk?
     Vf(k) = 0.5*x(:,k)'*P*x(:,k);
-    % size(x(:,k)')
-    % size(R)
-    % size(M)
-    % size(u(:,k))
     l(k) = 0.5*x(:,k)'*Q*x(:,k) + 0.5*u(:,k)'*R*u(:,k) +x(:,k)'*M*u(:,k);
 end
 
@@ -117,6 +114,10 @@ control_inputs = u';
 %% Plot results
 % plot 2D results
 plot_2D_plots(t, states_trajectory, control_inputs, params);
+
+% plot stage and terminal cost
+% Zegt nog niet heel veel momenteel
+% plot_cost_function(t,Vf,l);
 
 % show 3D simulation
 visualize_tricopter_trajectory(states_trajectory,control_inputs,params,0.1);
