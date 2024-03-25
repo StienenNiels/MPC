@@ -67,6 +67,7 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,params,p
         plot3( A1(1,:),A1(2,:),A1(3,:),'k',A2(1,:),A2(2,:),A2(3,:),'k');
         plot3( R1(1,:),R1(2,:),R1(3,:),'r',R2(1,:),R2(2,:),R2(3,:),'b',R3(1,:),R3(2,:),R3(3,:),'b');
         plot3( P1(1,:),P1(2,:),P1(3,:),'o','Color','b','MarkerSize',10,'MarkerFaceColor','#D9FFFF')
+        set ( gca, 'zdir', 'reverse' )
 
         hold off
         grid();

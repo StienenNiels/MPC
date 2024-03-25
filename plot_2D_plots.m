@@ -83,6 +83,7 @@ function plot_2D_plots(time, states_trajectory, control_inputs, params)
 
         subplot(6,2,6);
         stairs(time, states_trajectory(:,12), 'k-');  grid();
+        set ( gca, 'ydir', 'reverse' )
         ylim([-mean_x(12)*margin,mean_x(12)*margin])
         ylabel('$Z_b$ [m]','interpreter','latex');
 
