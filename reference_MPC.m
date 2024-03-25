@@ -14,7 +14,7 @@ dt = 0.1;
 x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
 % prediction horizon
-N = 50; 
+N = 10; 
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
