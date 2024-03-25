@@ -8,13 +8,14 @@ addpath("System_Analysis")
 % simulation time
 simTime = 10;
 dt = 0.1;
+payload = true;
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
 x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
 % prediction horizon
-N = 50; 
+N = 20; 
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
@@ -25,7 +26,7 @@ Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,10,100,100,400);
 R = 0*blkdiag(1,1,1,1);
 
 % Rate of change input weights
-L = 0.05*blkdiag(1,1,1,1);
+L = 0.05*blkdiag(1,1,1,10);
 
 %Input constraints
 u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
@@ -97,8 +98,8 @@ for k = 1:1:Tvec
     u(:,k) = u_N(1:4); % MPC control action
 
     % Simulate payload dropping without changing dynamics mpc uses
-    if k == 50
-        params.m = 0.5*params.m;
+    if k == 50 && payload
+        params.m = 0.8*params.m;
     end
 
     % apply control action  
