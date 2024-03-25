@@ -1,31 +1,15 @@
 function visualize_tricopter_trajectory(states_trajectory,control_input,params,pause_duration)
-    %% VISUALIZE TRICOPTER TRAJECTORY
-    %
-    % plots the dynamics of the tricopter given the 
-    % provided states_trajectory and control_inputs which must be as specified below
-    % INPUTS
-    % - time:               Nx1 vector of time indices
-    %       
-    % - states_trajectory:  Nx8 vector of tricopter and pendulum states
-    %       1) x        displacement of COM in x-direction
-    %       2) y        displacement of COM in y-direction
-    %       3) z        displacement of COM in z-direction
-    %       4) roll     rotation of tricopter around x-axis
-    %       5) pitch    rotation of tricopter around y-axis
-    %       6) yaw      rotation of tricopter around z-axis
-    % - control_inputs: Nx1 vector of rotor angle
-    %       1) mu       Angle of rotor 1 (rad)
-    % OUTPUS
-    % - none 
+    % plots the trajectory of the tricopter given the 
+    % provided states_trajectory and control_inputs
     
     %% INIT
     if (nargin == 3)
         pause_duration = 0;
     end
-    
+
     % X is the 6-states of the tricopter
-    X = states_trajectory(:,1:6);
-    U = control_input;
+    X = states_trajectory(:,[10 11 12 7 8 9]);
+    U = control_input(:,4);
     [N,~] = size(X);
 
     % reference set point (center of plot)

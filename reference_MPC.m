@@ -108,12 +108,10 @@ control_inputs = u';
 
 %% PLOT RESULTS
 % plot 2D results
-plot_2D_plots(t, states_trajectory, control_inputs);
+plot_2D_plots(t, states_trajectory, control_inputs, params);
 
 % show 3D simulation
-X = states_trajectory(:,[10 11 12 7 8 9]);
-u_cont = control_inputs(:,4);
-visualize_tricopter_trajectory(X,u_cont,params,0.1);
+visualize_tricopter_trajectory(states_trajectory,control_inputs,params,0.1);
 
 saved_data.t = t;
 saved_data.x = states_trajectory;
