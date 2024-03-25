@@ -6,9 +6,9 @@ addpath("System_Analysis")
 
 %% Tunable variables/parameters
 % simulation time
-simTime = 10;
+simTime = 1;
 dt = 0.1;
-payload = true;
+payload = false;
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
@@ -16,6 +16,7 @@ x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
 % prediction horizon
 N = 20; 
+control_horizon = 10;
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
@@ -93,8 +94,13 @@ for k = 1:1:Tvec
         % state constraints
         Scon*u_N <= -Tcon*x0 + repmat(x_cont,[N 1]);
         Scon*u_N >= -Tcon*x0 - repmat(x_cont,[N 1]);
+        % Additional constraints to keep the control inputs constant after the first 5 steps
+        for i = control_horizon+1:N
+            u_N((i-1)*4+1:i*4) == u_N((control_horizon-1)*4+1:control_horizon*4);
+        end
     cvx_end
 
+    u_N
     u(:,k) = u_N(1:4); % MPC control action
 
     % Simulate payload dropping without changing dynamics mpc uses
