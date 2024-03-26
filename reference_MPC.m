@@ -48,6 +48,37 @@ A = sysd.A;
 B = sysd.B;
 % C = sysd.C;
 
+%% Terminal set
+[K,S,e] = dlqr(A,B,Q,R,[]); 
+
+Xmax = [inf(3,1); pi/2;pi/2;2*pi; inf(6,1)];
+Xmin = -Xmax;
+
+% Create polyhedron representing the state constraints
+state_constraints = Polyhedron('lb', Xmin, 'ub', Xmax);
+state_constraints = state_constraints.minHRep(); % Compute minimal H-representation
+
+N = 5; % Number of iterations
+Oinf = state_constraints;
+for i = 1:N
+    i
+    pre_Oinf = (A-B*K) * Oinf;
+    Oinf = intersect(Oinf, pre_Oinf);
+%     pause(1)
+
+end
+
+figure(999);
+Oinf.projection([4, 5]).plot();
+xlabel('x');
+ylabel('\theta');
+title('Terminal Set Projection onto x-\theta Plane');
+grid on;
+
+% Display terminal set
+disp('Terminal set (maximal control invariant set):');
+disp(Oinf);
+
 %% Implement rate of change penalty
 [A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q,R,L,x0);
 sysd = ss(A,B,C,[],dt);
@@ -73,6 +104,36 @@ dim.ncy = 3;
 [T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
 [H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);  %Writing cost function in quadratic form
 
+%% Terminal set
+% [K,S,e] = dlqr(A,B,Q,R,[]); 
+% 
+% Xmax = [inf(3,1); pi/2;pi/2;2*pi; inf(10,1)];
+% Xmin = -Xmax;
+% 
+% % Create polyhedron representing the state constraints
+% state_constraints = Polyhedron('lb', Xmin, 'ub', Xmax);
+% state_constraints = state_constraints.minHRep(); % Compute minimal H-representation
+% 
+% N = 5; % Number of iterations
+% Oinf = state_constraints;
+% for i = 1:N
+%     pre_Oinf = (A-B*K) * Oinf;
+%     Oinf = intersect(Oinf, pre_Oinf);
+% %     pause(1)
+% 
+% end
+% 
+% figure(999);
+% Oinf.projection([1, 3]).plot();
+% xlabel('x');
+% ylabel('\theta');
+% title('Terminal Set Projection onto x-\theta Plane');
+% grid on;
+% 
+% % Display terminal set
+% disp('Terminal set (maximal control invariant set):');
+% disp(Oinf);
+
 %%
 tic
 for k = 1:1:Tvec
@@ -89,11 +150,11 @@ for k = 1:1:Tvec
     cvx_begin quiet
         variable u_N(4*Np)
         % Additional constraints to keep the control inputs constant after the first nc steps
-        U_repeat = reshape(u_N(1:4*Nc), 4, []);
-        u_N(4*Nc+1:end) == repmat(U_repeat(:,end), Np-Nc, 1);
-        % for i = Nc+1:Np
-        %     u_N((i-1)*4+1:i*4) == u_N((Nc-1)*4+1:Nc*4);
-        % end
+        % U_repeat = reshape(u_N(1:4*Nc), 4, []);
+        % u_N(4*Nc+1:end) == repmat(U_repeat(:,end), Np-Nc, 1);
+        for i = Nc+1:Np
+            u_N((i-1)*4+1:i*4) == u_N((Nc-1)*4+1:Nc*4);
+        end
         minimize ( (1/2)*quad_form(u_N,H) + h'*u_N )
         % input constraints
         u_N <= repmat(u_cont_up,[Np 1]);
