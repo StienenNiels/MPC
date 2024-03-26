@@ -24,7 +24,7 @@ Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,10,100,100,400);
 
 % Input weights
 % [Omega1 Omega2 Omega3 mu]
-R = 0*blkdiag(1,1,1,1);
+R = 0.1*blkdiag(1,1,1,1);
 
 % Rate of change input weights
 L = 0.05*blkdiag(1,1,1,10);
@@ -46,7 +46,7 @@ sysd = c2d(sysc,dt);
 
 A = sysd.A;
 B = sysd.B;
-% C = sysd.C;
+C = sysd.C;
 
 %% Terminal set
 [K,S,e] = dlqr(A,B,Q,R,[]); 
@@ -54,30 +54,51 @@ B = sysd.B;
 Xmax = [inf(3,1); pi/2;pi/2;2*pi; inf(6,1)];
 Xmin = -Xmax;
 
-% Create polyhedron representing the state constraints
-state_constraints = Polyhedron('lb', Xmin, 'ub', Xmax);
-state_constraints = state_constraints.minHRep(); % Compute minimal H-representation
+% % Create polyhedron representing the state constraints
+% state_constraints = Polyhedron('lb', Xmin, 'ub', Xmax);
+% state_constraints = state_constraints.minHRep(); % Compute minimal H-representation
+% 
+% N = 5; % Number of iterations
+% Oinf = state_constraints;
+% for i = 1:N
+%     i
+%     pre_Oinf = (A-B*K) * Oinf;
+%     Oinf = intersect(Oinf, pre_Oinf);
+% %     pause(1)
+% 
+% end
+% 
+% figure(999);
+% Oinf.projection([4, 5]).plot();
+% xlabel('x');
+% ylabel('\theta');
+% title('Terminal Set Projection onto x-\theta Plane');
+% grid on;
+% 
+% % Display terminal set
+% disp('Terminal set (maximal control invariant set):');
+% disp(Oinf);
 
-N = 5; % Number of iterations
-Oinf = state_constraints;
-for i = 1:N
-    i
-    pre_Oinf = (A-B*K) * Oinf;
-    Oinf = intersect(Oinf, pre_Oinf);
-%     pause(1)
+%Attempt at control invariant set with mpt3
+sysStruct.A = A;
+sysStruct.B = B;
+sysStruct.C = C;
+sysStruct.D = zeros(size(B));
 
-end
+sysStruct.xmax = Xmax;
+sysStruct.xmin = Xmin;
 
-figure(999);
-Oinf.projection([4, 5]).plot();
-xlabel('x');
-ylabel('\theta');
-title('Terminal Set Projection onto x-\theta Plane');
-grid on;
+sysStruct.umax = u_cont_up;
+sysStruct.umin = u_cont_low;
 
-% Display terminal set
-disp('Terminal set (maximal control invariant set):');
-disp(Oinf);
+probStruct.N=Inf;
+probStruct.subopt_lev=0;
+probStruct.Q = Q;
+probStruct.R = R;
+probStruct.norm = 2;
+
+ctrl = mpt_control(sysStruct, probStruct);
+ctrl_inv = mpt_invariantSet(ctrl);
 
 %% Implement rate of change penalty
 [A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q,R,L,x0);
