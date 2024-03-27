@@ -1,14 +1,10 @@
-function params = estimate_trim(params)
+function [params, mhat] = estimate_trim(params, mhat)
 
-m = params.m;
-m_payload = params.m_payload;
-m_total = params.m_total;
-I_xx = params.I_xx;
-I_yy = params.I_yy;
-I_zz = params.I_zz;
+mhat = mhat - 0.2*(mhat - params.m);
+m = mhat;
+
 l1 = params.l1;
 l2 = params.l2;
-l3 = params.l3;
 K_F = params.K_F;
 K_M = params.K_M;
 g = params.g;

@@ -36,6 +36,9 @@ u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
 %State contstraints
 x_cont = [pi/2;pi/2;2*pi];
 
+% Initial estimate for mhat
+mhat = 1.25;
+
 %% Define state space and check controllability
 sysc = init_ss_cont(params);
 check_controllability(sysc);
@@ -56,6 +59,7 @@ sysd = ss(A,B,C,[],dt);
 x = zeros(length(A(:,1)),Tvec);
 u = zeros(length(B(1,:)),Tvec);
 y = zeros(length(C(:,1)),Tvec);
+trim = zeros(5,Tvec);
 t = zeros(1,Tvec);
 
 Vf = zeros(1,Tvec);                % terminal cost sequence
@@ -81,21 +85,21 @@ for k = 1:1:Tvec
         fprintf('t = %d sec \n', t(k));
     end
 
-    if k >= 50
-    % Section for relinearizing
-        params = estimate_trim(params);
-            %Input constraints
-        u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
-        u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
-        sysc = init_ss_cont(params);
-        sysd = c2d(sysc,dt);
-        A = sysd.A;
-        B = sysd.B;
-        [A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q0,R0,L,x0_0);
-        sysd = ss(A,B,C,[],dt);
-        [T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
-        [H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);
-    end
+    % if k >= 50
+    % % Section for relinearizing
+    %     params = estimate_trim(params);
+    %         %Input constraints
+    %     u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
+    %     u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
+    %     sysc = init_ss_cont(params);
+    %     sysd = c2d(sysc,dt);
+    %     A = sysd.A;
+    %     B = sysd.B;
+    %     [A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q0,R0,L,x0_0);
+    %     sysd = ss(A,B,C,[],dt);
+    %     [T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
+    %     [H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);
+    % end
 
     % determine reference states based on reference input r
     x0 = x(:,k);
@@ -124,8 +128,22 @@ for k = 1:1:Tvec
 
     % Simulate payload dropping without changing dynamics mpc uses
     if k == 50 && payload
-        params.m = 0.8*params.m;
+        params.m = params.m_tricopter;
     end
+    
+    [params, mhat] = estimate_trim(params, mhat);
+    trim(:,k) = [params.trim.phi;
+                 params.trim.mu;
+                 params.trim.Omega1;
+                 params.trim.Omega2;
+                 params.trim.Omega3];
+    if k > 45 && k < 70
+        mhat
+    end
+    %Input constraints
+    u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
+    u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
+
 
     % apply control action  
     x(:,k+1) = simulate_dynamics(x(:,k),u(:,k),dt,params);
@@ -142,10 +160,11 @@ toc
 % states_trajectory: Nx16 matrix of 12 states and 4 inputs over time
 states_trajectory = y';
 control_inputs = u';
+trim_inputs = trim';
 
 %% Plot results
 % plot 2D results
-plot_2D_plots(t, states_trajectory, control_inputs, params);
+plot_2D_plots(t, states_trajectory, control_inputs, trim_inputs, params);
 
 % plot stage and terminal cost
 % Zegt nog niet heel veel momenteel

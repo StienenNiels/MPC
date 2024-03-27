@@ -30,7 +30,7 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,params,p
     ry = [ry ry(1)];
 
     % Payload mass
-    m_payload = 0.2*params.m;
+    m_payload = params.m_payload;
     P1_acc = 0;
     P1_vel = 0;
     
