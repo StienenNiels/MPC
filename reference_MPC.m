@@ -8,23 +8,23 @@ addpath("System_Analysis")
 % simulation time
 simTime = 10;
 dt = 0.1;
-payload = false;
+payload = true;
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
+x0_0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
 % prediction horizon
-Np = 20; 
-Nc = 10;
+Np = 50; 
+Nc = 50;
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,10,100,100,400);
+Q0 = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,10,100,100,400);
 
 % Input weights
 % [Omega1 Omega2 Omega3 mu]
-R = 0*blkdiag(1,1,1,1);
+R0 = 0*blkdiag(1,1,1,1);
 
 % Rate of change input weights
 L = 0.05*blkdiag(1,1,1,10);
@@ -49,7 +49,7 @@ B = sysd.B;
 % C = sysd.C;
 
 %% Implement rate of change penalty
-[A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q,R,L,x0);
+[A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q0,R0,L,x0_0);
 sysd = ss(A,B,C,[],dt);
 
 %% Model predictive control
@@ -79,6 +79,22 @@ for k = 1:1:Tvec
     t(k) = (k-1)*dt;
     if ( mod(t(k),1) == 0 ) 
         fprintf('t = %d sec \n', t(k));
+    end
+
+    if k >= 50
+    % Section for relinearizing
+        params = estimate_trim(params);
+            %Input constraints
+        u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
+        u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
+        sysc = init_ss_cont(params);
+        sysd = c2d(sysc,dt);
+        A = sysd.A;
+        B = sysd.B;
+        [A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q0,R0,L,x0_0);
+        sysd = ss(A,B,C,[],dt);
+        [T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
+        [H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);
     end
 
     % determine reference states based on reference input r
