@@ -50,9 +50,13 @@ C = sysd.C;
 
 %% Terminal set
 [K,S,e] = dlqr(A,B,Q,R,[]); 
+K = -K;
 
 Xmax = [inf(3,1); pi/2;pi/2;2*pi; inf(6,1)];
 Xmin = -Xmax;
+
+% Calculate Xn and Xf (maximum LQR-invariant set)
+[Xn, V, Z] = findXn(A, B, K, Np, Xmin, Xmax, u_cont_low, u_cont_up, 'lqr')
 
 % % Create polyhedron representing the state constraints
 % state_constraints = Polyhedron('lb', Xmin, 'ub', Xmax);
@@ -79,26 +83,26 @@ Xmin = -Xmax;
 % disp('Terminal set (maximal control invariant set):');
 % disp(Oinf);
 
-%Attempt at control invariant set with mpt3
-sysStruct.A = A;
-sysStruct.B = B;
-sysStruct.C = C;
-sysStruct.D = zeros(size(B));
-
-sysStruct.xmax = Xmax;
-sysStruct.xmin = Xmin;
-
-sysStruct.umax = u_cont_up;
-sysStruct.umin = u_cont_low;
-
-probStruct.N=Inf;
-probStruct.subopt_lev=0;
-probStruct.Q = Q;
-probStruct.R = R;
-probStruct.norm = 2;
-
-ctrl = mpt_control(sysStruct, probStruct);
-ctrl_inv = mpt_invariantSet(ctrl);
+% %Attempt at control invariant set with mpt3
+% sysStruct.A = A;
+% sysStruct.B = B;
+% sysStruct.C = C;
+% sysStruct.D = zeros(size(B));
+% 
+% sysStruct.xmax = Xmax;
+% sysStruct.xmin = Xmin;
+% 
+% sysStruct.umax = u_cont_up;
+% sysStruct.umin = u_cont_low;
+% 
+% probStruct.N=Inf;
+% probStruct.subopt_lev=0;
+% probStruct.Q = Q;
+% probStruct.R = R;
+% probStruct.norm = 2;
+% 
+% ctrl = mpt_control(sysStruct, probStruct);
+% ctrl_inv = mpt_invariantSet(ctrl);
 
 %% Implement rate of change penalty
 [A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q,R,L,x0);
