@@ -21,7 +21,13 @@ AOinf = zeros(0, Nx);
 bOinf = zeros(0, 1);
 tstar = inf();
 
-for t = 0:100
+for t = 0:10 % Changed for debugging purposes, was 100
+
+    if ( mod(t,5) == 0 ) 
+        clc
+        fprintf('t = %d /100 \n', t);
+    end
+
     % Add constraints for new time point.
     AOinf = [AOinf; A*Ft];
     bOinf = [bOinf; b];

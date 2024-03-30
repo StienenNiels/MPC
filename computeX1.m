@@ -55,7 +55,15 @@ end
 
 % Now do the projection step.
 for i = 1:Nu
-    [A, b, Aeq, beq] = fouriermotzkin(A, b, Aeq, beq);
+    for j = 1:size(A,2)
+        c = A(:,j);
+        temp = size(find(c == 0));
+        I(j) = temp(1);
+    end
+    % I;
+    [maxim, ind] = max(I)
+    % [A, b, Aeq, beq] = fouriermotzkin(A, b, Aeq, beq, ind);
+    [A, b] = fourmotz(A,b);
 end
 X1 = struct('A', A, 'b', b);
 

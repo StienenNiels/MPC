@@ -27,17 +27,21 @@ case 'lqr'
     [A_U, b_U] = hyperrectangle(ulb, uub);
     A_lqr = A_U*K;
     b_lqr = b_U;
+    display("Hyperrectangle u done")
     
     % State input
     [A_X, b_X] = hyperrectangle(xlb, xub);
     Acon = [A_lqr; A_X];
     bcon = [b_lqr; b_X];
+    display("Hyperrectangle x done")
 
     % Use LQR-invariant set.
     Xf = struct();
     ApBK = A + B*K; % LQR evolution matrix.
     [Xf.A, Xf.b] = calcOinf(ApBK, Acon, bcon);
+    display("O inf calculation finished")
     [~, Xf.A, Xf.b] = removeredundantcon(Xf.A, Xf.b);
+    display("Removed redundant constraints")
 
 end
 
@@ -66,6 +70,7 @@ for n = 1:(N + 1)
 
 %     Compute next set. Also need to prune constraints.
     nextXn = computeX1(Z, A, B, Xn{n});
+    display("Next set calculated")
     [~, nextXn.A, nextXn.b] = removeredundantcon(nextXn.A, nextXn.b);
     Xn{n + 1} = nextXn;
 end

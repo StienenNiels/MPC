@@ -81,15 +81,28 @@ end%function
 function [Ae, be] = fmelim(A, b, ielim)
     % Performs one step of Fourier-Motzkin elimination for inequality
     % constraints.
+
+    for i = 1:size(A,2)
+        c = A(:,i);
+        temp = size(find(c == 0));
+        I(i) = temp(1);
+    end
+    I
+    [maxim, ind] = max(I)
     c = A(:,ielim);
     I0 = find(c == 0);
     Ip = find(c > 0);
     Im = find(c < 0);
+    size(c)
+    size(I0)
+    size(Ip)
+    size(Im)
 
-    Nx = size(A, 2);
-    Ne = length(I0) + length(Ip)*length(Im);
+    Nx = size(A, 2)
+    Ne = length(I0) + length(Ip)*length(Im)
 
     E = [A(:,1:ielim - 1), A(:,ielim + 1:end), b];
+    size(E)
     Ee = [E(I0,:); kron(c(Ip), E(Im,:)) - kron(E(Ip,:), c(Im))];
 
     Ae = Ee(:,1:end-1);
