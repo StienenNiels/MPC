@@ -7,11 +7,9 @@ function [H,h,c]=costgen(T,S,Q,R,dim,x0,P,M)
 % V_N(u_N) = 0.5u'Hu + h'u + c
 
 % Define the bar matrices Qbar, Rbar, Mbar
-Qbar = kron(eye(dim.N),Q); 
-Qbar(end-dim.nx+1:end,end-dim.nx+1:end) = P;
+Qbar = blkdiag(kron(eye(dim.N),Q),P); 
 Rbar = kron(eye(dim.N),R);
-Mbar = [kron(eye(dim.N),M)];
-Mbar(end-dim.nx+1:end,end-dim.nu+1:end) = zeros(dim.nx,dim.nu);
+Mbar = [kron(eye(dim.N),M);zeros(dim.nx,dim.N*dim.nu)];
 
 % Calculate H,h,c
 H = Rbar + S'*Qbar*S + 2*S'*Mbar;  

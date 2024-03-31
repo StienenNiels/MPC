@@ -9,10 +9,10 @@ function [T,Tcon,S,Scon]=predmodgen(LTI,dim)
 xcon = [4,5,6];
 
 % Prediction matrix from initial state
-T=zeros(dim.ny*(dim.N),dim.nx);
-Tcon=zeros(dim.ncy*(dim.N),dim.nx);
+T=zeros(dim.ny*(dim.N+1),dim.nx);
+Tcon=zeros(dim.ncy*(dim.N+1),dim.nx);
 
-for k=0:dim.N-1
+for k=0:dim.N
     % Calculate slice
     Pslice = LTI.C*LTI.A^k;
     % Update full T matrix
@@ -22,10 +22,10 @@ for k=0:dim.N-1
 end
 
 % Prediction matrix from input
-S=zeros(dim.ny*(dim.N),dim.nu*(dim.N));
-Scon=zeros(dim.ncy*(dim.N),dim.nu*(dim.N));
+S=zeros(dim.ny*(dim.N+1),dim.nu*(dim.N));
+Scon=zeros(dim.ncy*(dim.N+1),dim.nu*(dim.N));
 
-for k=1:dim.N-1
+for k=1:dim.N
     for i=0:k-1
         % Calculate slice
         Sslice = LTI.C*LTI.A^(k-1-i)*LTI.B;

@@ -54,52 +54,6 @@ C = sysd.C;
 Xmax = [inf(3,1); pi/2;pi/2;2*pi; inf(6,1)];
 Xmin = -Xmax;
 
-% % Create polyhedron representing the state constraints
-% state_constraints = Polyhedron('lb', Xmin, 'ub', Xmax);
-% state_constraints = state_constraints.minHRep(); % Compute minimal H-representation
-% 
-% N = 5; % Number of iterations
-% Oinf = state_constraints;
-% for i = 1:N
-%     i
-%     pre_Oinf = (A-B*K) * Oinf;
-%     Oinf = intersect(Oinf, pre_Oinf);
-% %     pause(1)
-% 
-% end
-% 
-% figure(999);
-% Oinf.projection([4, 5]).plot();
-% xlabel('x');
-% ylabel('\theta');
-% title('Terminal Set Projection onto x-\theta Plane');
-% grid on;
-% 
-% % Display terminal set
-% disp('Terminal set (maximal control invariant set):');
-% disp(Oinf);
-
-%Attempt at control invariant set with mpt3
-sysStruct.A = A;
-sysStruct.B = B;
-sysStruct.C = C;
-sysStruct.D = zeros(size(B));
-
-sysStruct.xmax = Xmax;
-sysStruct.xmin = Xmin;
-
-sysStruct.umax = u_cont_up;
-sysStruct.umin = u_cont_low;
-
-probStruct.N=Inf;
-probStruct.subopt_lev=0;
-probStruct.Q = Q;
-probStruct.R = R;
-probStruct.norm = 2;
-
-ctrl = mpt_control(sysStruct, probStruct);
-ctrl_inv = mpt_invariantSet(ctrl);
-
 %% Implement rate of change penalty
 [A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q,R,L,x0);
 sysd = ss(A,B,C,[],dt);
@@ -124,36 +78,6 @@ dim.ncy = 3;
 
 [T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
 [H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);  %Writing cost function in quadratic form
-
-%% Terminal set
-% [K,S,e] = dlqr(A,B,Q,R,[]); 
-% 
-% Xmax = [inf(3,1); pi/2;pi/2;2*pi; inf(10,1)];
-% Xmin = -Xmax;
-% 
-% % Create polyhedron representing the state constraints
-% state_constraints = Polyhedron('lb', Xmin, 'ub', Xmax);
-% state_constraints = state_constraints.minHRep(); % Compute minimal H-representation
-% 
-% N = 5; % Number of iterations
-% Oinf = state_constraints;
-% for i = 1:N
-%     pre_Oinf = (A-B*K) * Oinf;
-%     Oinf = intersect(Oinf, pre_Oinf);
-% %     pause(1)
-% 
-% end
-% 
-% figure(999);
-% Oinf.projection([1, 3]).plot();
-% xlabel('x');
-% ylabel('\theta');
-% title('Terminal Set Projection onto x-\theta Plane');
-% grid on;
-% 
-% % Display terminal set
-% disp('Terminal set (maximal control invariant set):');
-% disp(Oinf);
 
 %%
 tic
@@ -181,8 +105,8 @@ for k = 1:1:Tvec
         u_N <= repmat(u_cont_up,[Np 1]);
         u_N >= repmat(u_cont_low,[Np 1]);
         % state constraints
-        Scon*u_N <= -Tcon*x0 + repmat(x_cont,[Np 1]);
-        Scon*u_N >= -Tcon*x0 - repmat(x_cont,[Np 1]);
+        Scon*u_N <= -Tcon*x0 + repmat(x_cont,[Np+1 1]);
+        Scon*u_N >= -Tcon*x0 - repmat(x_cont,[Np+1 1]);
         
     cvx_end
 
