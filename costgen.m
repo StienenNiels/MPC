@@ -6,6 +6,12 @@ function [H,h,c]=costgen(T,S,Q,R,dim,x0,P,M)
 % into a form only dependent on u_N:
 % V_N(u_N) = 0.5u'Hu + h'u + c
 
+if nargin == 6
+    M = zeros(dim.nx,dim.nu);
+    P = Q;
+end
+
+
 % Define the bar matrices Qbar, Rbar, Mbar
 Qbar = kron(eye(dim.N),Q); 
 Qbar(end-dim.nx+1:end,end-dim.nx+1:end) = P;
