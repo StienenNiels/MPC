@@ -43,6 +43,7 @@ check_controllability(sysc);
 %% Discretize system
 Tvec = simTime/dt;
 sysd = c2d(sysc,dt);
+check_eLQR(sysd,Q,R);
 
 A = sysd.A;
 B = sysd.B;
@@ -57,6 +58,7 @@ Xmin = -Xmax;
 %% Implement rate of change penalty
 [A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q,R,L,x0);
 sysd = ss(A,B,C,[],dt);
+check_eLQR(sysd,Q,R,M);
 
 %% Model predictive control
 x = zeros(length(A(:,1)),Tvec);
