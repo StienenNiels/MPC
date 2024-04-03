@@ -23,7 +23,7 @@ Q = [Q,zeros(n_x,n_u);
 R = R+L;
 M = -[zeros(n_x,n_u);L];
 P = [P,zeros(n_x,n_u);
-         zeros(n_u,n_x),L];
+         zeros(n_u,n_x),zeros(n_u,n_u)];
 
 % Extend the initial state
 x0 = [x0;zeros(n_u,1)];
