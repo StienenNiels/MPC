@@ -82,6 +82,10 @@ dim.ncy = 3;
 [T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
 [H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);  %Writing cost function in quadratic form
 
+% State constraints can als be rewritten into the form A*u_N <= b
+A_con = [Scon; -Scon];
+b_con = [-Tcon*x0 + repmat(x_cont,[Np+1 1]); Tcon*x0 + repmat(x_cont,[Np+1 1])];
+
 %%
 tic
 for k = 1:1:Tvec
@@ -95,23 +99,27 @@ for k = 1:1:Tvec
     [~,h,~]=costgen(T,S,Q,R,dim,x0,P,M);
 
     % compute control action
-    cvx_begin quiet
-        variable u_N(4*Np)
-        % Additional constraints to keep the control inputs constant after the first nc steps
-        % U_repeat = reshape(u_N(1:4*Nc), 4, []);
-        % u_N(4*Nc+1:end) == repmat(U_repeat(:,end), Np-Nc, 1);
-        for i = Nc+1:Np
-            u_N((i-1)*4+1:i*4) == u_N((Nc-1)*4+1:Nc*4);
-        end
-        minimize ( (1/2)*quad_form(u_N,H) + h'*u_N )
-        % input constraints
-        u_N <= repmat(u_cont_up,[Np 1]);
-        u_N >= repmat(u_cont_low,[Np 1]);
-        % state constraints
-        Scon*u_N <= -Tcon*x0 + repmat(x_cont,[Np+1 1]);
-        Scon*u_N >= -Tcon*x0 - repmat(x_cont,[Np+1 1]);
-        
-    cvx_end
+    % cvx_begin quiet
+    %     variable u_N(4*Np)
+    %     % Additional constraints to keep the control inputs constant after the first nc steps
+    %     % U_repeat = reshape(u_N(1:4*Nc), 4, []);
+    %     % u_N(4*Nc+1:end) == repmat(U_repeat(:,end), Np-Nc, 1);
+    %     for i = Nc+1:Np
+    %         u_N((i-1)*4+1:i*4) == u_N((Nc-1)*4+1:Nc*4);
+    %     end
+    %     minimize ( (1/2)*quad_form(u_N,H) + h'*u_N )
+    %     % input constraints
+    %     u_N <= repmat(u_cont_up,[Np 1]);
+    %     u_N >= repmat(u_cont_low,[Np 1]);
+    %     % state constraints
+    %     Scon*u_N <= -Tcon*x0 + repmat(x_cont,[Np+1 1]);
+    %     Scon*u_N >= -Tcon*x0 - repmat(x_cont,[Np+1 1]);
+    % 
+    % cvx_end
+
+    % solve QP problem
+    opts = optimoptions('quadprog','Display','off');
+    u_N = quadprog(H,h,A_con,b_con,[],[],repmat(u_cont_low,[Np 1]),repmat(u_cont_up,[Np 1]),[],opts);
 
     u(:,k) = u_N(1:4); % MPC control action
 
