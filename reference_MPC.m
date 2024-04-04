@@ -8,19 +8,19 @@ addpath("System_Analysis")
 % simulation time
 simTime = 10;
 dt = 0.1;
-payload = false;
+payload = true;
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
+x0_0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
 % prediction horizon
-Np = 20; 
-Nc = 10;
+Np = 50; 
+Nc = 50;
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,10,100,100,400);
+Q0 = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,10,100,100,400);
 
 % Input weights
 % [Omega1 Omega2 Omega3 mu]
@@ -35,6 +35,9 @@ u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
 
 %State contstraints
 x_cont = [pi/2;pi/2;2*pi];
+
+% Initial estimate for mhat
+mhat = 1.25;
 
 %% Define state space and check controllability
 sysc = init_ss_cont(params);
@@ -57,7 +60,7 @@ Xmax = [inf(3,1); pi/2;pi/2;2*pi; inf(6,1)];
 Xmin = -Xmax;
 
 %% Implement rate of change penalty
-[A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q,R,L,x0);
+[A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q0,R0,L,x0_0);
 sysd = ss(A,B,C,[],dt);
 check_eLQR(sysd,Q,R,M);
 
@@ -65,6 +68,7 @@ check_eLQR(sysd,Q,R,M);
 x = zeros(length(A(:,1)),Tvec);
 u = zeros(length(B(1,:)),Tvec);
 y = zeros(length(C(:,1)),Tvec);
+trim = zeros(5,Tvec);
 t = zeros(1,Tvec);
 
 Vf = zeros(1,Tvec);                % terminal cost sequence
@@ -93,6 +97,22 @@ for k = 1:1:Tvec
     if ( mod(t(k),1) == 0 ) 
         fprintf('t = %d sec \n', t(k));
     end
+
+    % if k >= 50
+    % % Section for relinearizing
+    %     params = estimate_trim(params);
+    %         %Input constraints
+    %     u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
+    %     u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
+    %     sysc = init_ss_cont(params);
+    %     sysd = c2d(sysc,dt);
+    %     A = sysd.A;
+    %     B = sysd.B;
+    %     [A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q0,R0,L,x0_0);
+    %     sysd = ss(A,B,C,[],dt);
+    %     [T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
+    %     [H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);
+    % end
 
     % determine reference states based on reference input r
     x0 = x(:,k);
@@ -125,8 +145,22 @@ for k = 1:1:Tvec
 
     % Simulate payload dropping without changing dynamics mpc uses
     if k == 50 && payload
-        params.m = 0.8*params.m;
+        params.m = params.m_tricopter;
     end
+    
+    [params, mhat] = estimate_trim(params, mhat);
+    trim(:,k) = [params.trim.phi;
+                 params.trim.mu;
+                 params.trim.Omega1;
+                 params.trim.Omega2;
+                 params.trim.Omega3];
+    if k > 45 && k < 70
+        mhat
+    end
+    %Input constraints
+    u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
+    u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
+
 
     % apply control action  
     x(:,k+1) = simulate_dynamics(x(:,k),u(:,k),dt,params);
@@ -143,10 +177,11 @@ toc
 % states_trajectory: Nx16 matrix of 12 states and 4 inputs over time
 states_trajectory = y';
 control_inputs = u';
+trim_inputs = trim';
 
 %% Plot results
 % plot 2D results
-plot_2D_plots(t, states_trajectory, control_inputs, params);
+plot_2D_plots(t, states_trajectory, control_inputs, trim_inputs, params);
 
 % plot stage and terminal cost
 % Zegt nog niet heel veel momenteel
