@@ -12,7 +12,7 @@ payload = true;
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-x0_0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
+x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
 % prediction horizon
 Np = 50; 
@@ -20,7 +20,7 @@ Nc = 50;
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-Q0 = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,10,100,100,400);
+Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,10,100,100,400);
 
 % Input weights
 % [Omega1 Omega2 Omega3 mu]
@@ -60,7 +60,7 @@ Xmax = [inf(3,1); pi/2;pi/2;2*pi; inf(6,1)];
 Xmin = -Xmax;
 
 %% Implement rate of change penalty
-[A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q0,R0,L,x0_0);
+[A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q,R,L,x0);
 sysd = ss(A,B,C,[],dt);
 check_eLQR(sysd,Q,R,M);
 
@@ -98,48 +98,15 @@ for k = 1:1:Tvec
         fprintf('t = %d sec \n', t(k));
     end
 
-    % if k >= 50
-    % % Section for relinearizing
-    %     params = estimate_trim(params);
-    %         %Input constraints
-    %     u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
-    %     u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
-    %     sysc = init_ss_cont(params);
-    %     sysd = c2d(sysc,dt);
-    %     A = sysd.A;
-    %     B = sysd.B;
-    %     [A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q0,R0,L,x0_0);
-    %     sysd = ss(A,B,C,[],dt);
-    %     [T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
-    %     [H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);
-    % end
-
     % determine reference states based on reference input r
     x0 = x(:,k);
     [~,h,~]=costgen(T,S,Q,R,dim,x0,P,M);
 
-    % compute control action
-    % cvx_begin quiet
-    %     variable u_N(4*Np)
-    %     % Additional constraints to keep the control inputs constant after the first nc steps
-    %     % U_repeat = reshape(u_N(1:4*Nc), 4, []);
-    %     % u_N(4*Nc+1:end) == repmat(U_repeat(:,end), Np-Nc, 1);
-    %     for i = Nc+1:Np
-    %         u_N((i-1)*4+1:i*4) == u_N((Nc-1)*4+1:Nc*4);
-    %     end
-    %     minimize ( (1/2)*quad_form(u_N,H) + h'*u_N )
-    %     % input constraints
-    %     u_N <= repmat(u_cont_up,[Np 1]);
-    %     u_N >= repmat(u_cont_low,[Np 1]);
-    %     % state constraints
-    %     Scon*u_N <= -Tcon*x0 + repmat(x_cont,[Np+1 1]);
-    %     Scon*u_N >= -Tcon*x0 - repmat(x_cont,[Np+1 1]);
-    % 
-    % cvx_end
-
     % solve QP problem
+    warning off
     opts = optimoptions('quadprog','Display','off');
     u_N = quadprog(H,h,A_con,b_con,[],[],repmat(u_cont_low,[Np 1]),repmat(u_cont_up,[Np 1]),[],opts);
+    warning on
 
     u(:,k) = u_N(1:4); % MPC control action
 
