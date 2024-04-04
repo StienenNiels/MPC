@@ -12,11 +12,11 @@ payload = true;
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
+x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.5]';
 
 % prediction horizon
-Np = 50; 
-Nc = 50;
+Np = 20; 
+Nc = 20;
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
@@ -85,6 +85,10 @@ dim.ncy = 3;
 
 [T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
 [H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);  %Writing cost function in quadratic form
+
+% %Terminal set
+% [P,K_LQR,~] = idare(A,B,Q,R,M);  % determine LQR gain for unconstrained system
+% [Xf_set_H,Xf_set_h] = max_control_admissable_set(A,B,K_LQR,u_lim,x_lim);
 
 % State constraints can als be rewritten into the form A*u_N <= b
 A_con = [Scon; -Scon];
