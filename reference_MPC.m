@@ -14,10 +14,6 @@ payload = false;
 % [u v w phi theta psi p q r X_b Y_b Z_b]
 x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
-% prediction horizon
-Np = 20; 
-Nc = 10;
-
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
 Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,10,100,100,400);
@@ -29,12 +25,10 @@ R = 0.1*blkdiag(1,1,1,1);
 % Rate of change input weights
 L = 0.05*blkdiag(1,1,1,10);
 
-%Input constraints
-u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
-u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
+Np = 10;
 
-%State contstraints
-x_cont = [pi/2;pi/2;2*pi];
+% Initial estimate for mhat
+mhat = 1.25;
 
 %% Define state space and check controllability
 sysc = init_ss_cont(params);
@@ -49,12 +43,6 @@ A = sysd.A;
 B = sysd.B;
 C = sysd.C;
 
-%% Terminal set
-[K,S,e] = dlqr(A,B,Q,R,[]); 
-
-Xmax = [inf(3,1); pi/2;pi/2;2*pi; inf(6,1)];
-Xmin = -Xmax;
-
 %% Implement rate of change penalty
 [A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q,R,L,x0);
 sysd = ss(A,B,C,[],dt);
@@ -64,6 +52,7 @@ check_eLQR(sysd,Q,R,M);
 x = zeros(length(A(:,1)),Tvec);
 u = zeros(length(B(1,:)),Tvec);
 y = zeros(length(C(:,1)),Tvec);
+trim = zeros(5,Tvec);
 t = zeros(1,Tvec);
 
 Vf = zeros(1,Tvec);                % terminal cost sequence
@@ -78,8 +67,13 @@ dim.nu = size(B,2);
 dim.ny = size(C,1);
 dim.ncy = 3;
 
-[T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
-[H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);  %Writing cost function in quadratic form
+[A_lift,~,B_lift,~]=predmodgen(sysd,dim);            %Generation of prediction model 
+
+x_con = [100*ones(3,1); pi/2;pi/2;2*pi; 100*ones(10,1)];
+u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
+u_cont_low = [1000;1000;1000;pi/2+params.trim.mu];
+
+[A_con,b_con_lim,b_con_x0,Xf_set_H,Xf_set_h] = constraint_matrices(A_lift,B_lift,u_cont_up,u_cont_low,x_con,A,B,Q,R,M,Np, false);
 
 %%
 tic
@@ -91,40 +85,42 @@ for k = 1:1:Tvec
 
     % determine reference states based on reference input r
     x0 = x(:,k);
-    [~,h,~]=costgen(T,S,Q,R,dim,x0,P,M);
+    [H,h,~]=costgen(A_lift,B_lift,Q,R,dim,x0,P,M);
+    b_con = b_con_lim - b_con_x0*x0;
 
-    % compute control action
-    cvx_begin quiet
-        variable u_N(4*Np)
-        % Additional constraints to keep the control inputs constant after the first nc steps
-        % U_repeat = reshape(u_N(1:4*Nc), 4, []);
-        % u_N(4*Nc+1:end) == repmat(U_repeat(:,end), Np-Nc, 1);
-        for i = Nc+1:Np
-            u_N((i-1)*4+1:i*4) == u_N((Nc-1)*4+1:Nc*4);
-        end
-        minimize ( (1/2)*quad_form(u_N,H) + h'*u_N )
-        % input constraints
-        u_N <= repmat(u_cont_up,[Np 1]);
-        u_N >= repmat(u_cont_low,[Np 1]);
-        % state constraints
-        Scon*u_N <= -Tcon*x0 + repmat(x_cont,[Np+1 1]);
-        Scon*u_N >= -Tcon*x0 - repmat(x_cont,[Np+1 1]);
-        
-    cvx_end
+    % solve QP problem
+    warning off
+    opts = optimoptions('quadprog','Display','off','Algorithm','interior-point-convex','LinearSolver','sparse');
+    u_N = quadprog(H,h,A_con,b_con,[],[],[],[],[],opts);
+    warning on
 
     u(:,k) = u_N(1:4); % MPC control action
 
     % Simulate payload dropping without changing dynamics mpc uses
     if k == 50 && payload
-        params.m = 0.8*params.m;
+        params.m = params.m_tricopter;
     end
+    
+    [params, mhat] = estimate_trim(params, mhat);
+    trim(:,k) = [params.trim.phi;
+                 params.trim.mu;
+                 params.trim.Omega1;
+                 params.trim.Omega2;
+                 params.trim.Omega3];
+    if k > 45 && k < 70
+        mhat;
+    end
+    %Input constraints
+    u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
+    u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
+
 
     % apply control action  
     x(:,k+1) = simulate_dynamics(x(:,k),u(:,k),dt,params);
     y(:,k) = C*x(:,k);
 
     % Calculate terminal and stage cost
-    [P,~,~] = dare(A,B,Q,R);
+    [P,~,~] = idare(A,B,Q,R);
     % Shouldn't Vf be calculated at xN instead of xk?
     Vf(k) = 0.5*x(:,k)'*P*x(:,k);
     l(k) = 0.5*x(:,k)'*Q*x(:,k) + 0.5*u(:,k)'*R*u(:,k) +x(:,k)'*M*u(:,k);
@@ -134,10 +130,11 @@ toc
 % states_trajectory: Nx16 matrix of 12 states and 4 inputs over time
 states_trajectory = y';
 control_inputs = u';
+trim_inputs = trim';
 
 %% Plot results
 % plot 2D results
-plot_2D_plots(t, states_trajectory, control_inputs, params);
+plot_2D_plots(t, states_trajectory, control_inputs, trim_inputs, params, true);
 
 % plot stage and terminal cost
 % Zegt nog niet heel veel momenteel

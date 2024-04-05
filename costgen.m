@@ -6,14 +6,20 @@ function [H,h,c]=costgen(T,S,Q,R,dim,x0,P,M)
 % into a form only dependent on u_N:
 % V_N(u_N) = 0.5u'Hu + h'u + c
 
+if nargin == 6
+    M = zeros(dim.nx,dim.nu);
+    P = Q;
+end
+
+
 % Define the bar matrices Qbar, Rbar, Mbar
 Qbar = blkdiag(kron(eye(dim.N),Q),P); 
 Rbar = kron(eye(dim.N),R);
 Mbar = [kron(eye(dim.N),M);zeros(dim.nx,dim.N*dim.nu)];
 
 % Calculate H,h,c
-H = Rbar + S'*Qbar*S + 2*S'*Mbar;  
-h = S'*Qbar*T*x0 + Mbar'*T*x0;
+H = sparse(Rbar + S'*Qbar*S + 2*S'*Mbar);  
+h = sparse(S'*Qbar*T*x0 + Mbar'*T*x0);
 c = x0'*T'*Qbar*T*x0;
 
 end

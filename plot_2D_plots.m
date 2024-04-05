@@ -1,9 +1,9 @@
-function plot_2D_plots(time, states_trajectory, control_inputs, params)
+function plot_2D_plots(time, states_trajectory, control_inputs, trim, params, show_full_info)
 
     % Function plotting the 12 states and 4 inputs of the tricopter
     
     % True for centering around the actual value instead of linearized
-    show_full_info = true;
+    % show_full_info = false;
 
     % Scale of plot. 1.0 means the abs max value lies on the edge
     margin = 1.2;
@@ -51,7 +51,7 @@ function plot_2D_plots(time, states_trajectory, control_inputs, params)
         % Or always center around 0 instead of around trim?
         subplot(6,2,8);
         if show_full_info == true
-            stairs(time, states_trajectory(:,4)+params.trim.phi, 'm-');  grid();
+            stairs(time, states_trajectory(:,4)+trim(:,1), 'm-');  grid();
             ylim([params.trim.phi-mean_x(4)*margin,params.trim.phi+mean_x(4)*margin])
         else
             stairs(time, states_trajectory(:,4), 'm-');  grid();
@@ -94,24 +94,24 @@ function plot_2D_plots(time, states_trajectory, control_inputs, params)
     if show_inputs
         figure(2);
         clf;
-        if show_full_info == true
+        if show_full_info
             subplot 411;
-            stairs(time, control_inputs(:,1)+params.trim.Omega1, 'm-');  grid();
-            ylim([params.trim.Omega1-mean_u(1)*margin,params.trim.Omega1+mean_u(1)*margin])
+            stairs(time, control_inputs(:,1)+trim(:,3), 'm-');  grid();
+            ylim([params.trim.Omega1-mean_u(1)*margin,params.trim.Omega1+mean_u(1)*2*margin])
             ylabel('$\Omega_1$ [rpm]','interpreter','latex');
     
             subplot 412;
-            stairs(time, control_inputs(:,2)+params.trim.Omega2, 'm-');  grid();
-            ylim([params.trim.Omega2-mean_u(2)*margin,params.trim.Omega2+mean_u(2)*margin])
+            stairs(time, control_inputs(:,2)+trim(:,4), 'm-');  grid();
+            ylim([params.trim.Omega2-mean_u(2)*margin,params.trim.Omega2+mean_u(2)*2*margin])
             ylabel('$\Omega_2$ [rpm]','interpreter','latex');
     
             subplot 413;
-            stairs(time, control_inputs(:,3)+params.trim.Omega3, 'b-');  grid();
-            ylim([params.trim.Omega3-mean_u(3)*margin,params.trim.Omega3+mean_u(3)*margin])
+            stairs(time, control_inputs(:,3)+trim(:,5), 'b-');  grid();
+            ylim([params.trim.Omega3-mean_u(3)*margin,params.trim.Omega3+mean_u(3)*2*margin])
             ylabel('$\Omega_3$ [rpm]','interpreter','latex');
     
             subplot 414;
-            stairs(time, control_inputs(:,4)+params.trim.mu, 'b-');  grid();
+            stairs(time, control_inputs(:,4)+trim(:,2), 'b-');  grid();
             ylim([params.trim.mu-mean_u(4)*margin,params.trim.mu+mean_u(4)*margin])
             ylabel('$\mu$ [rad]','interpreter','latex');
         else
