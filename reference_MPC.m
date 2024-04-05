@@ -14,7 +14,7 @@ payload = false;
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
+x0 = [0 0 0 0 0 0 0 0 0 0 1 0]';
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
@@ -72,8 +72,11 @@ dim.ncy = 3;
 [A_lift,~,B_lift,~]=predmodgen(sysd,dim);            %Generation of prediction model 
 
 x_con = [100*ones(3,1); pi/2;pi/2;2*pi; 100*ones(10,1)];
-u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
-u_cont_low = [1000;1000;1000;pi/2+params.trim.mu];
+% u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
+% u_cont_low = [1000;1000;1000;pi/2+params.trim.mu];
+
+u_cont_up = [3000-params.trim.Omega1;3000-params.trim.Omega2;3000-params.trim.Omega3;pi/2-params.trim.mu];
+u_cont_low = [params.trim.Omega1;params.trim.Omega2;params.trim.Omega3;pi/2+params.trim.mu];
 
 [A_con,b_con_lim,b_con_x0,Xf_set_H,Xf_set_h] = constraint_matrices(A_lift,B_lift,u_cont_up,u_cont_low,x_con,A,B,Q,R,M,Np, true);
 
@@ -113,9 +116,8 @@ for k = 1:1:Tvec
         mhat;
     end
     %Input constraints
-    u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
-    u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
-
+    u_cont_up = [3000-params.trim.Omega1;3000-params.trim.Omega2;3000-params.trim.Omega3;pi/2-params.trim.mu];
+    u_cont_low = [params.trim.Omega1;params.trim.Omega2;params.trim.Omega3;pi/2+params.trim.mu];
 
     % apply control action  
     x(:,k+1) = simulate_dynamics(x(:,k),u(:,k),dt,params);
