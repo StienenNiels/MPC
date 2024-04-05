@@ -10,8 +10,10 @@ addpath("Plotting")
 % simulation time
 variables_struc.simTime = 5;
 variables_struc.dt = 0.1;
+variables_struc.Np = 10;
 variables_struc.payload = false;
-payload = variables_struc.payload;
+variables_struc.terminal_set = true;
+
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
 variables_struc.x0 = [0 0.2 0 0 0 0.2 0 0 0 0.1 0.1 1]';
@@ -27,11 +29,9 @@ variables_struc.R = 0.1*blkdiag(1,1,1,1);
 % Rate of change input weights
 variables_struc.L = 0.05*blkdiag(1,1,1,10);
 
-variables_struc.Np = 10;
-
 % Initial estimate for mhat
 variables_struc.mhat = params.m;
-variables_struc.terminal_set = true;
+
 
 [t, y, u, trim,Vf,l,inSet] = MPC_simulation(variables_struc,params);
 
@@ -46,4 +46,5 @@ plot_2D_plots(t, y, u, trim, params, true);
 
 % show 3D simulation
 % Timestep of payload drop is hardcoded for now
+payload = variables_struc.payload;
 visualize_tricopter_trajectory(y,u,params,payload,0.1);
