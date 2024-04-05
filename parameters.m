@@ -1,6 +1,7 @@
 %% Variables
 m_tricopter = 1.1; %kg Tricopter mass
-m_payload = rand(1)*0.1+0.1;
+% m_payload = rand(1)*0.1+0.1; % If desired randomness
+m_payload = 0;
 m = m_tricopter + m_payload;
 I_xx = 0.0239; %kgm^2
 I_yy = 0.01271;
@@ -37,5 +38,6 @@ params.trim.Omega1 = sqrt(l2*g*m*cos(phi)/((l1+l2)*K_F*cos(mu)));
 params.trim.Omega2 = sqrt(l1*g*m*cos(phi)/(2*(l1+l2)*K_F));
 params.trim.Omega3 = params.trim.Omega2;
 
-%% Remove everythin except params
-clearvars -except params
+%% Remove everything except params
+% clearvars -except params
+clearvars m_tricopter m_payload m I_xx I_yy I_zz l1 l2 l3 K_F K_M g mu phi

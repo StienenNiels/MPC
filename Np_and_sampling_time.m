@@ -1,4 +1,5 @@
 %% Tricopter MPC stabilizing (nonlinear dynamics)
+%% Testing influence of parameters and variables
 clc
 clear
 run("parameters.m")
@@ -33,18 +34,32 @@ variables_struc.L = 0.05*blkdiag(1,1,1,10);
 variables_struc.mhat = params.m;
 
 
-[t, y, u, trim,Vf,l,inSet] = MPC_simulation(variables_struc,params);
+%%
+close all
+legendStrings = {} ;
+% for dt = [0.05, 0.1, 0.2]
+for Np = [2, 5, 10, 20, 50]
 
+    
+    variables_struc.Np = Np;
+    fieldName = sprintf('Np%i', Np);
 
-%% Plot results
-% plot 2D results
-plot_2D_plots(t, y, u, trim, params, true);
+    % Np_seconds = 1;
+    % variables_struc.dt = dt;
+    % variables_struc.Np = Np_seconds/dt;
+    % fieldName = sprintf('dt%i', round(dt*100));
 
-% plot stage and terminal cost
-% Zegt nog niet heel veel momenteel
-% plot_cost_function(t,Vf,l,inSet);
+    legendStrings{end+1} = fieldName;
 
-% show 3D simulation
-% Timestep of payload drop is hardcoded for now
-payload = variables_struc.payload;
-visualize_tricopter_trajectory(y,u,params,payload,0.1);
+    run("parameters.m");
+    [t, y, u, trim,~,~,~] = MPC_simulation(variables_struc,params);
+
+    result.(fieldName).t = t;
+    result.(fieldName).y = y;
+    result.(fieldName).u = u;
+    result.(fieldName).trim = trim;
+
+    plot_2D_plots_consecutive(t, y, u, trim, params, true);
+end
+
+legend(legendStrings)
