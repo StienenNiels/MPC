@@ -3,6 +3,8 @@ clc
 clear
 run("parameters.m")
 addpath("System_Analysis")
+addpath("Functions")
+addpath("Plotting")
 
 %% Tunable variables/parameters
 % simulation time

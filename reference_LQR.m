@@ -5,6 +5,10 @@
 %% INIT
 clc
 clear
+run("parameters.m")
+addpath("System_Analysis")
+addpath("Functions")
+addpath("Plotting")
 
 %% DEFINE STATE SPACE SYSTEM
 sysc = init_ss_cont();
