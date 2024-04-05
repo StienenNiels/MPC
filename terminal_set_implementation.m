@@ -61,12 +61,6 @@ u_cont_low = [1000;1000;1000;pi/2+params.trim.mu];
 
 [A_con,b_con_lim,b_con_x0,Xf_set_H,Xf_set_h] = constraint_matrices(A_lift,B_lift,u_cont_up,u_cont_low,x_con,A,B,Q,R,M,N, true);
 
-fprintf('\tdone!\n');
-%% Determine invariant set X_f
-fprintf('\testimating X_f invariant set \n');
-
-fprintf('\tSuccesfully constructed terminal set X_f\n');
-
 %%
 clc
 % given X_f calculated before, we can test if a given state x0 is within
