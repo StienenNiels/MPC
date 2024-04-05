@@ -1,9 +1,9 @@
-function plot_2D_plots(time, states_trajectory, control_inputs, trim, params)
+function plot_2D_plots(time, states_trajectory, control_inputs, trim, params, show_full_info)
 
     % Function plotting the 12 states and 4 inputs of the tricopter
     
     % True for centering around the actual value instead of linearized
-    show_full_info = true;
+    % show_full_info = false;
 
     % Scale of plot. 1.0 means the abs max value lies on the edge
     margin = 1.2;
@@ -94,7 +94,7 @@ function plot_2D_plots(time, states_trajectory, control_inputs, trim, params)
     if show_inputs
         figure(2);
         clf;
-        if show_full_info == true
+        if show_full_info
             subplot 411;
             stairs(time, control_inputs(:,1)+trim(:,3), 'm-');  grid();
             ylim([params.trim.Omega1-mean_u(1)*margin,params.trim.Omega1+mean_u(1)*2*margin])

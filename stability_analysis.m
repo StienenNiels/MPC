@@ -118,13 +118,94 @@ dim.ny = size(C,1);
 dim.ncy = 3;
 
 [T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
+% Tcon = T;
+% Scon = S;
+
+%Input constraints
+u_cont_up = [100;100;100;pi/2-params.trim.mu];
+u_cont_low = [-100;-100;-100;-pi/2-params.trim.mu];
+%State contstraints
+x_cont = [pi/2;pi/2;2*pi];
+% x_cont = [100*ones(3,1); pi/2;pi/2;2*pi; 100*ones(6,1);u_cont_up];
+
+%%
+clc
+% given X_f calculated before, we can test if a given state x0 is within
+% this set or not. This is done here:
+
+% state x0
+%    [u v w phi theta psi p q r X_b Y_b Z_b O O O mu]   <-- state names
+x0 = [0 0 0 0   0     0   0 0 0 0.5   0.5   1   0 0 0 0]'; % <-- state values
+
+% check if the x-location is within X_f
+inSet = all(Xf_set_H*x0 <= Xf_set_h);
+if inSet
+    fprintf('x0 is in the set X_f\n');
+else
+    fprintf('x0 is NOT in the set X_f\n');
+end
+
+for i = 1:2
+    if i == 1
+        A_con = [Scon; -Scon];
+        b_con = [-Tcon*x0 + repmat(x_cont,[N+1 1]); Tcon*x0 + repmat(x_cont,[N+1 1])];
+        [H,h,const]=costgen(T,S,Q,R,dim,x0,1*P,M);  %Writing cost function in quadratic form
+        fprintf('Without terminal constraint set\n')
+    else
+        A_con = [Scon; -Scon];
+        b_con = [-Tcon*x0 + repmat(x_cont,[N+1 1]); Tcon*x0 + repmat(x_cont,[N+1 1])];
+        A_con = [A_con; Xf_set_H*[zeros(size(B,1),(N-1)*size(B,2)),B]];
+        b_con = [b_con; Xf_set_h];
+        [H,h,const]=costgen(T,S,Q,R,dim,x0,1*P,M);  %Writing cost function in quadratic form
+        fprintf('With terminal constraint set\n')
+    end
+
+    size(A_con)
+    % solve QP problem
+    warning off
+    opts = optimoptions('quadprog','Display','off');
+    u_N = quadprog(H,h,A_con,b_con,[],[],repmat(u_cont_low,[N 1]),repmat(u_cont_up,[N 1]),[],opts);
+    warning on
+    
+    x(:,1) = x0;
+    
+    for k = 1:N
+        % obtain optimal control action at k=0
+        u(:,k) = u_N((k-1)*4+1:(k-1)*4+4);
+        
+        % apply control action
+        x(:,k+1) = A*x(:,k) + B*u(:,k);
+        % x(:,k+1) = simulate_dynamics(x(:,k),u(:,k),dt,params);
+    
+    end
+    
+    inSet = all(Xf_set_H*x(:,N+1) <= Xf_set_h);
+    max(max(u))
+    mean(u,"all")
+    if inSet
+        fprintf('x_N is in the set X_f\n');
+        % mean(x(:,N+1))
+        x(:,N+1)
+    else
+        fprintf('x_N is NOT in the set X_f\n');
+    end
+    x_comp(:,:,i) = x;
+end
+
+% diff = mean(x_comp(:,1)-x_comp(:,2))
+figure(1), clf;
+plot3(x_comp(10,:,1),x_comp(11,:,1),x_comp(12,:,1)), hold on;
+plot3(x_comp(10,:,2),x_comp(11,:,2),x_comp(12,:,2)), hold on;
+disp("Done")
+
+%%
 
 % Define IC_test_vals as the set of initial conditions to consider
 r = 1;
 s = 1;
 
-res_x = 30;
-res_y = 30;
+res_x = 10;
+res_y = 10;
 bnd_x_up = 2;
 bnd_x_lo = -bnd_x_up;
 bnd_y_up = 10;
@@ -134,22 +215,16 @@ betarange = [1];
 mat = zeros(res_x,res_y,size(betarange,1));
 beta_i = 1;
 
-Np = 10;
-Nc = 5;
-
-%Input constraints
-u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
-u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
-%State contstraints
-x_cont = [pi/2;pi/2;2*pi];
-
 %     % state constraints
 %     Scon*u_N <= -Tcon*x0 + repmat(x_cont,[Np+1 1]);
 %     Scon*u_N >= -Tcon*x0 - repmat(x_cont,[Np+1 1]);
 
 % State constraints can als be rewritten into the form A*u_N <= b
 A_con = [Scon; -Scon];
-b_con = [-Tcon*x0 + repmat(x_cont,[Np+1 1]); Tcon*x0 + repmat(x_cont,[Np+1 1])];
+b_con = [-Tcon*x0 + repmat(x_cont,[N+1 1]); Tcon*x0 + repmat(x_cont,[N+1 1])];
+
+A_con = [A_con; Xf_set_H*[zeros(size(B,1),9*size(B,2)),B]];
+b_con = [b_con; Xf_set_h];
 
 
 for betaVal = betarange
@@ -158,7 +233,7 @@ for betaVal = betarange
     fprintf('\t - Beta = %d \n',betaVal)
 
     [H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);  %Writing cost function in quadratic form
-    
+
     r = 1;
 
     % loop through different initial conditions 
@@ -193,7 +268,7 @@ for betaVal = betarange
                 warning off
                 % solve QP problem
                 opts = optimoptions('quadprog','Display','off');
-                u_N = quadprog(H,h,A_con,b_con,[],[],repmat(u_cont_low,[Np 1]),repmat(u_cont_up,[Np 1]),[],opts);
+                u_N = quadprog(H,h,A_con,b_con,[],[],repmat(u_cont_low,[N 1]),repmat(u_cont_up,[N 1]),[],opts);
 
                 % obtain optimal control action at k=0
                 u(:,k) = u_N(1:4);
@@ -206,7 +281,7 @@ for betaVal = betarange
             end
 
             inSet = all(Xf_set_H*x(:,N+1) <= Xf_set_h);
-            % fprintf('Is %i, %i in the set? %d\n', initial_y, initial_x, inSet);
+            fprintf('Is %i, %i in the set? %d\n', initial_y, initial_x, inSet);
             if mod(r,5) == 0 && s == 1
                 fprintf('iteration r = %i, total in set = %i\n', r, sum(mat(:,:,beta_i),"all"));
             end
@@ -246,7 +321,7 @@ ylabel('$\beta$ = 1.0','interpreter','latex');
 fprintf('\tdone! \n');
 
 %%
-% Useless plot, nice though
+% % Useless plot, nice though
 % %% PLOT THE CONSTRAINT SET X_f
 % 
 % H_xyz = Xf_set_H(:,[10,11,12]);

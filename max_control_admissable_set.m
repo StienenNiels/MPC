@@ -1,4 +1,4 @@
-function [H,h] = max_control_admissable_set(A,B,K,u_lim,x_lim)
+function [H,h] = max_control_admissable_set(A,B,K,x_lim,u_up,u_lo)
 
     % Extension of algorithm 3.2 in the paper:
     % "Linear Systems with State and Control Constraints: The Theory and Application of Maximal Output Admissible Sets"
@@ -18,8 +18,8 @@ function [H,h] = max_control_admissable_set(A,B,K,u_lim,x_lim)
 
     % Initialization
     % Constraints
-    f_max = [x_lim; u_lim];
-    f_min = [x_lim; u_lim]; % The negative sign is placed in H, due to the condition Hx <= h
+    f_max = [x_lim; u_up];
+    f_min = [x_lim; u_lo]; % The negative sign is placed in H, due to the condition Hx <= h
     f = [f_max; f_min];
 
     % Number of constraints
