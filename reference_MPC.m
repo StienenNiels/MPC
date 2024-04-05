@@ -6,7 +6,7 @@ addpath("System_Analysis")
 
 %% Tunable variables/parameters
 % simulation time
-simTime = 10;
+simTime = 5;
 dt = 0.1;
 payload = false;
 
@@ -73,7 +73,7 @@ x_con = [100*ones(3,1); pi/2;pi/2;2*pi; 100*ones(10,1)];
 u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
 u_cont_low = [1000;1000;1000;pi/2+params.trim.mu];
 
-[A_con,b_con_lim,b_con_x0,Xf_set_H,Xf_set_h] = constraint_matrices(A_lift,B_lift,u_cont_up,u_cont_low,x_con,A,B,Q,R,M,Np, false);
+[A_con,b_con_lim,b_con_x0,Xf_set_H,Xf_set_h] = constraint_matrices(A_lift,B_lift,u_cont_up,u_cont_low,x_con,A,B,Q,R,M,Np, true);
 
 %%
 tic

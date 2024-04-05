@@ -18,16 +18,13 @@ function [H,h] = max_control_admissable_set(A,B,K,x_lim,u_up,u_lo)
 
     % Initialization
     % Constraints
-    f_max = [x_lim; u_up];
-    f_min = [x_lim; u_lo]; % The negative sign is placed in H, due to the condition Hx <= h
-    f = [f_max; f_min];
+    f = [x_lim; x_lim];
 
     % Number of constraints
     s = size(f,1);
 
     % Setup extended matrices
     A_ext = A - B*K;
-    K_ext = [eye(size(A)); K]; % Finish this line later
 
     % Algorithm settings
     exit_flag = 0;
@@ -39,10 +36,10 @@ function [H,h] = max_control_admissable_set(A,B,K,x_lim,u_up,u_lo)
     while exit_flag == 0
         fprintf('\tk = %i \n',t);
         % Solve optimization problem
-        H = [H; K_ext*A_ext^t; -K_ext*A_ext^t];
+        H = [H; A_ext^t; -A_ext^t];
         h = [h; f];
 
-        J = [K_ext*A_ext^(t+1); -K_ext*A_ext^(t+1)];
+        J = [A_ext^(t+1); -A_ext^(t+1)];
 
         opt_val = zeros(1,s);
 
