@@ -14,7 +14,7 @@ payload = false;
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
+x0 = [0 0.2 0 0 0 0.2 0 0 0 0.1 0.1 1]';
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
@@ -30,7 +30,7 @@ L = 0.05*blkdiag(1,1,1,10);
 Np = 10;
 
 % Initial estimate for mhat
-mhat = 1.25;
+mhat = params.m;
 
 %% Define state space and check controllability
 sysc = init_ss_cont(params);
@@ -59,6 +59,7 @@ t = zeros(1,Tvec);
 
 Vf = zeros(1,Tvec);                % terminal cost sequence
 l = zeros(1,Tvec);                 % stage cost sequence
+inSet = zeros(1,Tvec);                 % Whether in Xf at time step
 
 x(:,1) = x0';
 
@@ -118,12 +119,13 @@ for k = 1:1:Tvec
 
 
     % apply control action  
+    % x(:,k+1) = A*x(:,k) + B*u(:,k);
     x(:,k+1) = simulate_dynamics(x(:,k),u(:,k),dt,params);
     y(:,k) = C*x(:,k);
 
     % Calculate terminal and stage cost
     [P,~,~] = idare(A,B,Q,R);
-    % Shouldn't Vf be calculated at xN instead of xk?
+    inSet(k) = all(Xf_set_H*x0 <= Xf_set_h);
     Vf(k) = 0.5*x(:,k)'*P*x(:,k);
     l(k) = 0.5*x(:,k)'*Q*x(:,k) + 0.5*u(:,k)'*R*u(:,k) +x(:,k)'*M*u(:,k);
 end
@@ -140,11 +142,11 @@ plot_2D_plots(t, states_trajectory, control_inputs, trim_inputs, params, true);
 
 % plot stage and terminal cost
 % Zegt nog niet heel veel momenteel
-% plot_cost_function(t,Vf,l);
+% plot_cost_function(t,Vf,l,inSet);
 
 % show 3D simulation
 % Timestep of payload drop is hardcoded for now
-visualize_tricopter_trajectory(states_trajectory,control_inputs,params,payload,0.1);
+% visualize_tricopter_trajectory(states_trajectory,control_inputs,params,payload,0.1);
 
 saved_data.t = t;
 saved_data.x = states_trajectory;

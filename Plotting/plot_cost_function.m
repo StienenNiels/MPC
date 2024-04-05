@@ -1,30 +1,20 @@
-function plot_cost_function(time,Vf,l)
+function plot_cost_function(time,Vf,l,inSet)
 
 % Plots the terminal cost Vf and stage cost l over time
 
-margin = 1.1;
-Vf_max = max(abs(Vf));
-l_max = max(abs(l));
+ind = find(inSet, 1, 'first');
 
 figure(3);
 clf;
 
-subplot(1,2,1);
-stairs(time, Vf, 'b-','DisplayName',"Terminal cost V_f"); hold on
-stairs(time(1:end-1), Vf(1:end-1)-Vf(2:end), 'm-','DisplayName',"V_{f(k+1)}-V_{f(k)}");  grid();
-% ylim([-Vf_max*margin,Vf_max*margin])
-ylim([-50,500])
-ylabel('$V_f$','interpreter','latex');
-legend()
-xlabel('Time [s]');
-
-subplot(1,2,2);
-stairs(time, l, 'b-','DisplayName',"Stage cost l"); hold on
-stairs(time(1:end-1), l(1:end-1)-l(2:end), 'm-','DisplayName',"l_{(k+1)}-l_{(k)}");  grid();
-% ylim([-l_max*margin,l_max*margin])
-ylim([-10,100])
-ylabel('$l$','interpreter','latex');
-legend()
-xlabel('Time [s]');
+plot([time(ind) time(ind)], [-1e-2 -1e7],"LineWidth",2, "LineStyle","--","Color","#77AC30",'DisplayName',"In $$X_f$$ from here");hold on
+stairs(time(1:end-1), -l(2:end), "LineWidth",1.2, "LineStyle","-","Color","#0072BD",'DisplayName',"$$l(x,u)$$"); hold on
+stairs(time(1:end-1), Vf(2:end)-Vf(1:end-1), "LineWidth",1.2, "LineStyle","-","Color","#D95319",'DisplayName',"$$V(f(x,u))-V(x)$$"); hold on
+grid();
+ylim([-1e5 -1e-2]);
+yscale("log");
+ylabel('$Cost$','interpreter','latex');
+legend("Location","southeast", 'Interpreter', 'latex', 'FontSize', 12)
+xlabel('Time [s]', 'Interpreter', 'latex');
 
 end
