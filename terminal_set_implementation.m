@@ -52,31 +52,12 @@ dim.ny = size(C,1);
 dim.ncy = 3;
 
 [A_lift,~,B_lift,~]=predmodgen(sysd,dim);            %Generation of prediction model 
-F_up = blkdiag(0*eye(3),eye(3),0*eye(10));
-F_lo = -F_up;
-F = [F_up;F_lo];
-x_con = [100*ones(3,1); pi/2;pi/2;2*pi; 100*ones(10,1)];
-f = [x_con; x_con];
 
-G = [eye(4); -eye(4)];
+x_con = [100*ones(3,1); pi/2;pi/2;2*pi; 100*ones(10,1)];
 u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
 u_cont_low = [1000;1000;1000;pi/2+params.trim.mu];
-g = [u_cont_up; u_cont_low];
 
-[P,K_LQR,~] = idare(A,B,Q,R,M);  % determine LQR gain for unconstrained system
-[Xf_set_H,Xf_set_h] = max_control_admissable_set(A,B,K_LQR,x_con,u_cont_up,u_cont_up);
-% Xf_set_H = [eye(16);-eye(16)];
-% Xf_set_h = zeros(2*16,1);
-
-F_tilde = sparse(blkdiag(kron(F,eye(N)),Xf_set_H));
-f_tilde = [repmat(f,[N 1]);Xf_set_h];
-
-G_tilde = sparse(kron(G,eye(N)));
-g_tilde = repmat(g,[N 1]);
-
-A_con = [F_tilde*B_lift; G_tilde];
-b_con_lim = [f_tilde; g_tilde];
-b_con_x0  = [F_tilde*A_lift; zeros(size(g_tilde,1),size(F_tilde*A_lift,2))];
+[A_con,b_con_lim,b_con_x0,Xf_set_H,Xf_set_h] = constraint_matrices(A_lift,B_lift,u_cont_up,u_cont_low,x_con,A,B,Q,R,M,N, true);
 
 fprintf('\tdone!\n');
 %% Determine invariant set X_f

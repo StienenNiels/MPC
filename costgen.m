@@ -18,8 +18,8 @@ Rbar = kron(eye(dim.N),R);
 Mbar = [kron(eye(dim.N),M);zeros(dim.nx,dim.N*dim.nu)];
 
 % Calculate H,h,c
-H = Rbar + S'*Qbar*S + 2*S'*Mbar;  
-h = S'*Qbar*T*x0 + Mbar'*T*x0;
+H = sparse(Rbar + S'*Qbar*S + 2*S'*Mbar);  
+h = sparse(S'*Qbar*T*x0 + Mbar'*T*x0);
 c = x0'*T'*Qbar*T*x0;
 
 end

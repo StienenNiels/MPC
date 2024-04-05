@@ -8,15 +8,11 @@ addpath("System_Analysis")
 % simulation time
 simTime = 10;
 dt = 0.1;
-payload = true;
+payload = false;
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.5]';
-
-% prediction horizon
-Np = 20; 
-Nc = 20;
+x0 = [0 0 0 0 0 0 0 0 0 0.1 0.1 0.1]';
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
@@ -29,12 +25,7 @@ R = 0.1*blkdiag(1,1,1,1);
 % Rate of change input weights
 L = 0.05*blkdiag(1,1,1,10);
 
-%Input constraints
-u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
-u_cont_low = [-1000;-1000;-1000;-pi/2-params.trim.mu];
-
-%State contstraints
-x_cont = [pi/2;pi/2;2*pi];
+Np = 10;
 
 % Initial estimate for mhat
 mhat = 1.25;
@@ -51,13 +42,6 @@ check_eLQR(sysd,Q,R);
 A = sysd.A;
 B = sysd.B;
 C = sysd.C;
-
-%% Terminal set
-[K,S,e] = dlqr(A,B,Q,R,[]); 
-K = -K;
-
-Xmax = [inf(3,1); pi/2;pi/2;2*pi; inf(6,1)];
-Xmin = -Xmax;
 
 %% Implement rate of change penalty
 [A,B,C,Q,R,M,P,x0] = rate_change_pen(A,B,Q,R,L,x0);
@@ -83,16 +67,13 @@ dim.nu = size(B,2);
 dim.ny = size(C,1);
 dim.ncy = 3;
 
-[T,Tcon,S,Scon]=predmodgen(sysd,dim);            %Generation of prediction model 
-[H,h,const]=costgen(T,S,Q,R,dim,x0,P,M);  %Writing cost function in quadratic form
+[A_lift,~,B_lift,~]=predmodgen(sysd,dim);            %Generation of prediction model 
 
-% %Terminal set
-% [P,K_LQR,~] = idare(A,B,Q,R,M);  % determine LQR gain for unconstrained system
-% [Xf_set_H,Xf_set_h] = max_control_admissable_set(A,B,K_LQR,u_lim,x_lim);
+x_con = [100*ones(3,1); pi/2;pi/2;2*pi; 100*ones(10,1)];
+u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
+u_cont_low = [1000;1000;1000;pi/2+params.trim.mu];
 
-% State constraints can als be rewritten into the form A*u_N <= b
-A_con = [Scon; -Scon];
-b_con = [-Tcon*x0 + repmat(x_cont,[Np+1 1]); Tcon*x0 + repmat(x_cont,[Np+1 1])];
+[A_con,b_con_lim,b_con_x0,Xf_set_H,Xf_set_h] = constraint_matrices(A_lift,B_lift,u_cont_up,u_cont_low,x_con,A,B,Q,R,M,Np, false);
 
 %%
 tic
@@ -104,12 +85,13 @@ for k = 1:1:Tvec
 
     % determine reference states based on reference input r
     x0 = x(:,k);
-    [~,h,~]=costgen(T,S,Q,R,dim,x0,P,M);
+    [H,h,~]=costgen(A_lift,B_lift,Q,R,dim,x0,P,M);
+    b_con = b_con_lim - b_con_x0*x0;
 
     % solve QP problem
     warning off
-    opts = optimoptions('quadprog','Display','off');
-    u_N = quadprog(H,h,A_con,b_con,[],[],repmat(u_cont_low,[Np 1]),repmat(u_cont_up,[Np 1]),[],opts);
+    opts = optimoptions('quadprog','Display','off','Algorithm','interior-point-convex','LinearSolver','sparse');
+    u_N = quadprog(H,h,A_con,b_con,[],[],[],[],[],opts);
     warning on
 
     u(:,k) = u_N(1:4); % MPC control action
@@ -126,7 +108,7 @@ for k = 1:1:Tvec
                  params.trim.Omega2;
                  params.trim.Omega3];
     if k > 45 && k < 70
-        mhat
+        mhat;
     end
     %Input constraints
     u_cont_up = [1000;1000;1000;pi/2-params.trim.mu];
@@ -138,7 +120,7 @@ for k = 1:1:Tvec
     y(:,k) = C*x(:,k);
 
     % Calculate terminal and stage cost
-    [P,~,~] = dare(A,B,Q,R);
+    [P,~,~] = idare(A,B,Q,R);
     % Shouldn't Vf be calculated at xN instead of xk?
     Vf(k) = 0.5*x(:,k)'*P*x(:,k);
     l(k) = 0.5*x(:,k)'*Q*x(:,k) + 0.5*u(:,k)'*R*u(:,k) +x(:,k)'*M*u(:,k);
@@ -152,7 +134,7 @@ trim_inputs = trim';
 
 %% Plot results
 % plot 2D results
-plot_2D_plots(t, states_trajectory, control_inputs, trim_inputs, params);
+plot_2D_plots(t, states_trajectory, control_inputs, trim_inputs, params, true);
 
 % plot stage and terminal cost
 % Zegt nog niet heel veel momenteel
