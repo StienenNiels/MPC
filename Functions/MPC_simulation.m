@@ -67,10 +67,12 @@ u_cont_low = [params.trim.Omega1;params.trim.Omega2;params.trim.Omega3;pi/2+para
 
 %%
 tic
+ll = 0;
 for k = 1:1:Tvec
     t(k) = (k-1)*dt;
     if ( mod(t(k),1) == 0 ) 
-        fprintf('t = %d sec, %d%% done \n', t(k), round(100*t(k)/simTime));
+        fprintf(repmat('\b',1,ll));
+        ll = fprintf('t = %d sec, %d%% done \n', t(k), round(100*t(k)/simTime));
     end
 
     % determine reference states based on reference input r
@@ -115,11 +117,13 @@ for k = 1:1:Tvec
     Vf(k) = 0.5*x(:,k)'*P*x(:,k);
     l(k) = 0.5*x(:,k)'*Q*x(:,k) + 0.5*u(:,k)'*R*u(:,k) +x(:,k)'*M*u(:,k);
 end
+fprintf(repmat('\b',1,ll));
 fprintf('t = %d sec, 100%% done \n', simTime);
 toc
 
 % states_trajectory: Nx16 matrix of 12 states and 4 inputs over time
-y = y';
-u = u';
-trim = trim';
+t = t(1:end-1);
+y = y(:,2:end)';
+u = u(:,2:end)';
+trim = trim(:,2:end)';
 end
