@@ -51,7 +51,7 @@ function plot_2D_plots_consecutive(time, states_trajectory, control_inputs, trim
         % ylim([-mean_x(9)*margin,mean_x(9)*margin])
         ylabel('$r$ [rad/s]','interpreter','latex');
 
-        xlabel('Time [s]');
+        xlabel('Time [s]','interpreter','latex');
 
         % Or always center around 0 instead of around trim?
         subplot(6,2,8);
@@ -77,7 +77,7 @@ function plot_2D_plots_consecutive(time, states_trajectory, control_inputs, trim
         % ylim([-mean_x(6)*margin,mean_x(6)*margin])
         ylabel('$\psi$ [rad]','interpreter','latex');
 
-        xlabel('Time [s]');
+        xlabel('Time [s]','interpreter','latex');
 
         subplot(6,2,2);
         hold on
@@ -154,6 +154,6 @@ function plot_2D_plots_consecutive(time, states_trajectory, control_inputs, trim
             ylabel('$\mu$ [rad]','interpreter','latex');
         end
 
-        xlabel('Time [s]');
+        xlabel('Time [s]','interpreter','latex');
     end 
 end
