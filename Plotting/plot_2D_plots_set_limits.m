@@ -14,7 +14,7 @@ function plot_2D_plots_set_limits(params)
         figure(1);
         subplot(6,2,i);
         hold on
-        if i ~= 10
+        if i ~= 8
             ylim([-max(abs(ylim))*margin, max(abs(ylim))*margin]);
         else
             ylim([phi-max(abs(ylim-phi))*margin, phi+max(abs(ylim-phi))*margin]);
