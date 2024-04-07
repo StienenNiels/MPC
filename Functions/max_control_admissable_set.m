@@ -34,7 +34,9 @@ function [H,h] = max_control_admissable_set(A,B,K,x_lim,u_up,u_lo)
     t = 0;
 
     while exit_flag == 0
-        fprintf('\tk = %i \n',t);
+        if mod(t,10) == 0
+            fprintf('\tX_f generation, k = %i \n',t);
+        end
         % Solve optimization problem
         H = [H; A_ext^t; -A_ext^t];
         h = [h; f];
@@ -54,7 +56,7 @@ function [H,h] = max_control_admissable_set(A,B,K,x_lim,u_up,u_lo)
         % Check if solution is feasible
         if all(opt_val <= 0-eps) && exit ~= -3
             exit_flag = 1;
-            fprintf('\tdone!\n');
+            fprintf('\tDone! Needed %i iterations\n',t);
             fprintf('\tNumber of constraints: %i \n',size(H,1));
         else
             t = t + 1;

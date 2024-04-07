@@ -66,7 +66,7 @@ tic
 for k = 1:1:Tvec
     t(k) = (k-1)*dt;
     if ( mod(t(k),1) == 0 ) 
-        fprintf('t = %d sec \n', t(k));
+        fprintf('t = %d sec, %d%% done \n', t(k), round(100*t(k)/simTime));
     end
 
     % determine reference states based on reference input r
@@ -111,6 +111,7 @@ for k = 1:1:Tvec
     Vf(k) = 0.5*x(:,k)'*P*x(:,k);
     l(k) = 0.5*x(:,k)'*Q*x(:,k) + 0.5*u(:,k)'*R*u(:,k) +x(:,k)'*M*u(:,k);
 end
+fprintf('t = %d sec, 100%% done \n', simTime);
 toc
 
 % states_trajectory: Nx16 matrix of 12 states and 4 inputs over time
