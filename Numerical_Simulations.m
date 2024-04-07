@@ -12,7 +12,7 @@ addpath("Plotting")
 % simulation time
 variables_struc.simTime = 5;
 variables_struc.dt = 0.1;
-variables_struc.Np = 10;
+variables_struc.Np = 25;
 variables_struc.payload = false;
 variables_struc.terminal_set = true;
 
@@ -35,20 +35,28 @@ variables_struc.L = 0.05*blkdiag(1,1,1,10);
 variables_struc.mhat = params.m;
 
 %%
+disp("Choose a case to simulate:")
 disp("Case 0: Default simulation")
 disp("Case 1: Sampling time variation")
 disp("Case 2: Prediction horizon variation")
+disp("Case 3: Simulate n random initial conditions")
 n = input('Select a case: ');
 
 switch n
     case 0 % Default simulation
         var_range = 1;
     case 1 % Sampling time variation
-        var_range = [0.05, 0.1, 0.2];
+        Np_seconds = 3; % Based on simulations so far 3 is about average
+        dt = [0.02, 0.05, 0.1, 0.2, 0.5];
+        var_range = 1:size(dt,2);
     case 2 % Prediction horizon variation
-        var_range = [2, 5, 10, 20, 50];
+        Np = [2, 5, 10, 20, 50];
+        var_range = 1:size(Np,2);
+    case 3 % Test settling time based on different x0
+        Nsim = input('Number of random simulations: ');
+        var_range = 1:Nsim;
     otherwise % Invalid case selected
-        disp('Invalid case selected')
+        error('Invalid case selected')
 end
 
 close all
@@ -58,15 +66,17 @@ for var = var_range
     case 0 % Default simulation
         fieldName = sprintf('Default');
     case 1 % Sampling time variation
-        Np_seconds = 1;
-        variables_struc.dt = dt;
-        variables_struc.Np = Np_seconds/dt;
-        fieldName = sprintf('dt%i', round(dt*100));
+        variables_struc.dt = dt(var);
+        variables_struc.Np = Np_seconds/dt(var);
+        fieldName = sprintf('dt%i', round(dt(var)*100));
     case 2 % Prediction horizon variation
-        variables_struc.Np = var;
-        fieldName = sprintf('Np%i', var);
+        variables_struc.Np = Np(var);
+        fieldName = sprintf('Np%i', Np(var));
+    case 3 % Test settling time based on different x0
+        variables_struc.x0 = 2*(rand(12, 1)-0.5);
+        fieldName = sprintf('x0%i', var);
     otherwise % Invalid case selected
-        disp('Invalid case selected')
+        error('Case not implemented')
     end
     
     % Create legend entries
@@ -86,10 +96,25 @@ for var = var_range
 
     % Initial plot (NOT the report level plots)
     plot_2D_plots_consecutive(t, y, u, trim, params, true);
+
+    % Check what the settling time is
+    is_settled = y(:,1:12) > -0.01 & y(:,1:12) < 0.01;
+    if is_settled(end)
+        [id,~] = find(~is_settled,1,'last');
+        settling_time(var) = (id + 1)*variables_struc.dt;
+    else
+        settling_time(var) = [];
+    end
+    fprintf("Settling time is %.2f seconds\n", settling_time(var))
 end
 
-% Add legend to the plot
-legend(legendStrings)
+% Display the average settling time
+avg_settling = mean(settling_time);
+fprintf("Settling time is %.2f seconds on average\n", avg_settling)
+
+% Add legend to the plot and set y limits
+plot_2D_plots_set_limits(params);
+legend(legendStrings);
 
 %% Save the simulation data to a structure to reuse later
 % To be added
