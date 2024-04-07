@@ -22,14 +22,14 @@ variables_struc.x0 = [0 0 0 0 0 0 0 0 0 1 0 1]';
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-variables_struc.Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,10,100,100,400);
+variables_struc.Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,5,100,100,300);
 
 % Input weights
 % [Omega1 Omega2 Omega3 mu]
 variables_struc.R = 0.1*blkdiag(1,1,1,1);
 
 % Rate of change input weights
-variables_struc.L = 0.05*blkdiag(1,1,1,10);
+variables_struc.L = 0.05*blkdiag(1,1,1,100);
 
 % Initial estimate for mhat
 variables_struc.mhat = params.m;
@@ -40,6 +40,7 @@ disp("Case 0: Default simulation")
 disp("Case 1: Sampling time variation")
 disp("Case 2: Prediction horizon variation")
 disp("Case 3: Simulate n random initial conditions")
+disp("Case 4: Influence of delta_u weighing matrix")
 n = input('Select a case: ');
 
 switch n
@@ -47,14 +48,18 @@ switch n
         var_range = 1;
     case 1 % Sampling time variation
         Np_seconds = 3; % Based on simulations so far 3 is about average
-        dt = [0.02, 0.05, 0.1, 0.2, 0.5];
+        dt = [0.1, 0.2, 0.5];
         var_range = 1:size(dt,2);
     case 2 % Prediction horizon variation
-        Np = [2, 5, 10, 20, 50];
+        % Np = [2, 5, 10, 20, 25, 30, 35, 40, 50];
+        Np = [2,5,10,20,25,30,35];
         var_range = 1:size(Np,2);
     case 3 % Test settling time based on different x0
         Nsim = input('Number of random simulations: ');
         var_range = 1:Nsim;
+    case 4 % Show influence of L matrix
+        L_scale = [0.05 0.5 1 5];
+        var_range = 1:size(L_scale,2);
     otherwise % Invalid case selected
         error('Invalid case selected')
 end
@@ -65,22 +70,30 @@ for var = var_range
     switch n
     case 0 % Default simulation
         fieldName = sprintf('Default');
+        legName   = sprintf('Default');
     case 1 % Sampling time variation
         variables_struc.dt = dt(var);
         variables_struc.Np = Np_seconds/dt(var);
         fieldName = sprintf('dt%i', round(dt(var)*100));
+        legName   = sprintf('$$T = %g sec$$', dt(var));
     case 2 % Prediction horizon variation
         variables_struc.Np = Np(var);
         fieldName = sprintf('Np%i', Np(var));
+        legName   = sprintf('$$N_p = %i$$', Np(var));
     case 3 % Test settling time based on different x0
         variables_struc.x0 = 2*(rand(12, 1)-0.5);
         fieldName = sprintf('x0%i', var);
+        legName   = sprintf('$$x0_{%i}$$', var);
+    case 4 % Show influence of L matrix
+        variables_struc.L = L_scale(var)*blkdiag(1,1,1,1000);
+        fieldName = sprintf('L%i', L_scale(var)*100);
+        legName   = sprintf('$$L_{scale} = %g$$', L_scale(var));
     otherwise % Invalid case selected
         error('Case not implemented')
     end
     
     % Create legend entries
-    legendStrings{end+1} = fieldName;
+    legendStrings{end+1} = legName;
 
     % Reload parameters
     run("parameters.m");
@@ -98,7 +111,7 @@ for var = var_range
     plot_2D_plots_consecutive(t, y, u, trim, params, true);
 
     % Check what the settling time is
-    is_settled = y(:,1:12) > -0.01 & y(:,1:12) < 0.01;
+    is_settled = y(:,[4:6, 10:12]) > -0.01 & y(:,[4:6, 10:12]) < 0.01;
     if is_settled(end)
         [id,~] = find(~is_settled,1,'last');
         settling_time(var) = (id + 1)*variables_struc.dt;
@@ -114,7 +127,7 @@ fprintf("Settling time is %.2f seconds on average\n", avg_settling)
 
 % Add legend to the plot and set y limits
 plot_2D_plots_set_limits(params);
-legend(legendStrings);
+legend(legendStrings, "Interpreter","latex");
 
 %% Save the simulation data to a structure to reuse later
 % To be added
