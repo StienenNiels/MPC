@@ -1,8 +1,7 @@
 %% Variables
 m_tricopter = 1.1; %kg Tricopter mass
-% m_payload = rand(1)*0.1+0.1; % If desired randomness
-m_payload = 0;
-m = m_tricopter + m_payload;
+m_payload = rand(1)*0.1+0.1; % If desired randomness
+m = m_tricopter;
 I_xx = 0.0239; %kgm^2
 I_yy = 0.01271;
 I_zz = 0.01273;

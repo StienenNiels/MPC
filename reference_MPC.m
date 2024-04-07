@@ -11,7 +11,7 @@ addpath("Plotting")
 variables_struc.simTime = 5;
 variables_struc.dt = 0.1;
 variables_struc.Np = 10;
-variables_struc.payload = false;
+variables_struc.payload = true;
 variables_struc.terminal_set = true;
 
 % Initial conditions

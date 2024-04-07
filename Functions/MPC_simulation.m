@@ -12,6 +12,10 @@ terminal_set = variables_struc.terminal_set;
 payload = variables_struc.payload;
 mhat = variables_struc.mhat;
 
+if payload
+    params.m = params.m + params.m_payload;
+end
+
 %% Define state space and check controllability
 sysc = init_ss_cont(params);
 check_controllability(sysc);
