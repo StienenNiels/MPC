@@ -8,9 +8,9 @@ addpath("Plotting")
 
 %% Tunable variables/parameters
 % simulation time
-variables_struc.simTime = 5;
+variables_struc.simTime = 10;
 variables_struc.dt = 0.1;
-variables_struc.Np = 10;
+variables_struc.Np = 25;
 variables_struc.payload = true;
 variables_struc.terminal_set = true;
 
@@ -20,14 +20,14 @@ variables_struc.x0 = [0 0 0 0 0 0 0 0 0 1 0 1]';
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-variables_struc.Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,10,100,100,400);
+variables_struc.Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,5,100,100,300);
 
 % Input weights
 % [Omega1 Omega2 Omega3 mu]
 variables_struc.R = 0.1*blkdiag(1,1,1,1);
 
 % Rate of change input weights
-variables_struc.L = 0.05*blkdiag(1,1,1,10);
+variables_struc.L = 0.5*blkdiag(1,1,1,100);
 
 % Initial estimate for mhat
 variables_struc.mhat = params.m;

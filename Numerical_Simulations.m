@@ -29,7 +29,7 @@ variables_struc.Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,5,100,100,300);
 variables_struc.R = 0.1*blkdiag(1,1,1,1);
 
 % Rate of change input weights
-variables_struc.L = 0.05*blkdiag(1,1,1,100);
+variables_struc.L = 0.5*blkdiag(1,1,1,100);
 
 % Initial estimate for mhat
 variables_struc.mhat = params.m;
@@ -41,6 +41,7 @@ disp("Case 1: Sampling time variation")
 disp("Case 2: Prediction horizon variation")
 disp("Case 3: Simulate n random initial conditions")
 disp("Case 4: Influence of delta_u weighing matrix")
+disp("Case 5: Payload dropping")
 n = input('Select a case: ');
 
 switch n
@@ -60,6 +61,8 @@ switch n
     case 4 % Show influence of L matrix
         L_scale = [0.05 0.5 1 5];
         var_range = 1:size(L_scale,2);
+    case 5 % Payload dropping
+        var_range = 1;
     otherwise % Invalid case selected
         error('Invalid case selected')
 end
@@ -88,6 +91,11 @@ for var = var_range
         variables_struc.L = L_scale(var)*blkdiag(1,1,1,1000);
         fieldName = sprintf('L%i', L_scale(var)*100);
         legName   = sprintf('$$L_{scale} = %g$$', L_scale(var));
+    case 5 % Payload dropping
+        variables_struc.payload = true;
+        variables_struc.simTime = 10;
+        fieldName = sprintf('payload');
+        legName   = sprintf('Payload');
     otherwise % Invalid case selected
         error('Case not implemented')
     end
