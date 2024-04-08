@@ -1,3 +1,6 @@
 
 # Ignore matlab autosave files
 *.asv
+
+# Ignore video files
+*.avi
