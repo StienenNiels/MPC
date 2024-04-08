@@ -10,11 +10,39 @@ addpath("Plotting")
 %% Tunable variables/parameters
 % Default settings for all cases
 % simulation time
-variables_struc.simTime = 5;
+variables_struc.simTime = 20;
 variables_struc.dt = 0.1;
 variables_struc.Np = 25;
 variables_struc.payload = false;
 variables_struc.terminal_set = true;
+variables_struc.trj_tracking = false;
+Nsteps = variables_struc.simTime/variables_struc.dt;
+
+% % Define a trajectory to follow
+% variables_struc.trj = zeros(16,Nsteps);
+% variables_struc.trj(10,1:Nsteps/4) = linspace(0,-2,Nsteps/4);
+% variables_struc.trj(11,Nsteps/4+1:Nsteps/2) = linspace(0,2,Nsteps/4);
+% variables_struc.trj(12,Nsteps/2+1:3*Nsteps/4) = linspace(0,-2,Nsteps/4);
+% variables_struc.trj(10,Nsteps/4+1:end) = -2;
+% variables_struc.trj(11,Nsteps/2+1:end) = 2;
+% variables_struc.trj(12,3*Nsteps/4+1:end) = -2;
+
+% Define a trajectory to follow
+variables_struc.trj = zeros(16,Nsteps);
+t = linspace(0, pi/2, Nsteps/4);
+variables_struc.trj(6,Nsteps/4+1:Nsteps/2) = -t;
+variables_struc.trj(6,Nsteps/2+1:end) = -pi/2;
+variables_struc.trj(10,Nsteps/4+1:Nsteps/2) = -2*sin(t);
+variables_struc.trj(11,Nsteps/4+1:Nsteps/2) = 2-2*cos(t);
+variables_struc.trj(12,Nsteps/2+1:3*Nsteps/4) = linspace(0,-2,Nsteps/4);
+variables_struc.trj(10,Nsteps/2+1:end) = -2;
+variables_struc.trj(11,Nsteps/2+1:end) = 2;
+variables_struc.trj(12,3*Nsteps/4+1:end) = -2;
+
+% Figure used for verifying trajectory
+% figure(85), clf;
+% plot3(variables_struc.trj(10,:),variables_struc.trj(11,:),variables_struc.trj(12,:))
+% %%
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
@@ -42,6 +70,8 @@ disp("Case 2: Prediction horizon variation")
 disp("Case 3: Simulate n random initial conditions")
 disp("Case 4: Influence of delta_u weighing matrix")
 disp("Case 5: Payload dropping")
+disp("Case 6: Trajectory tracking")
+disp("Case 7: Trajectory tracking with payload drop")
 n = input('Select a case: ');
 
 switch n
@@ -63,6 +93,10 @@ switch n
         var_range = 1:size(L_scale,2);
     case 5 % Payload dropping
         var_range = 1;
+    case 6 % Trajectory tracking
+        var_range = 1;
+    case 7 
+        var_range = 1;
     otherwise % Invalid case selected
         error('Invalid case selected')
 end
@@ -72,7 +106,7 @@ legendStrings = {} ;
 for var = var_range
     switch n
     case 0 % Default simulation
-        fieldName = sprintf('Default');
+        fieldName = sprintf('default');
         legName   = sprintf('Default');
     case 1 % Sampling time variation
         variables_struc.dt = dt(var);
@@ -96,6 +130,17 @@ for var = var_range
         variables_struc.simTime = 10;
         fieldName = sprintf('payload');
         legName   = sprintf('Payload');
+    case 6 % Trajectory tracking
+        variables_struc.trj_tracking = true;
+        variables_struc.x0 = [0 0 0 0 0 0 0 0 0 0 0 0]';
+        fieldName = sprintf('trajectory');
+        legName   = sprintf('Trajectory');
+    case 7 % Trajectory tracking with payload
+        variables_struc.payload = true;
+        variables_struc.trj_tracking = true;
+        variables_struc.x0 = [0 0 0 0 0 0 0 0 0 0 0 0]';
+        fieldName = sprintf('trajectory');
+        legName   = sprintf('Trajectory');
     otherwise % Invalid case selected
         error('Case not implemented')
     end
@@ -124,7 +169,7 @@ for var = var_range
         [id,~] = find(~is_settled,1,'last');
         settling_time(var) = (id + 1)*variables_struc.dt;
     else
-        settling_time(var) = [];
+        settling_time(var) = inf;
     end
     fprintf("Settling time is %.2f seconds\n", settling_time(var))
 end
@@ -142,3 +187,6 @@ legend(legendStrings, "Interpreter","latex");
 
 %% Generate report level plots
 % To be added
+
+payload = variables_struc.payload;
+visualize_tricopter_trajectory_vid(y,u,params,payload,0.1);
