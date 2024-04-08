@@ -1,4 +1,4 @@
-function [H,h,c]=costgen(T,S,Q,R,dim,x0,P,M)
+function [H,h,c]=costgen(T,S,Q,R,dim,x0,P,M,x_ref)
 
 % Cost function generation
 % Converts a cost function of the form:
@@ -11,6 +11,9 @@ if nargin == 6
     P = Q;
 end
 
+if nargin == 8
+    x_ref = zeros(size(T,1),1);
+end
 
 % Define the bar matrices Qbar, Rbar, Mbar
 Qbar = blkdiag(kron(eye(dim.N),Q),P); 
@@ -19,7 +22,12 @@ Mbar = [kron(eye(dim.N),M);zeros(dim.nx,dim.N*dim.nu)];
 
 % Calculate H,h,c
 H = sparse(Rbar + S'*Qbar*S + 2*S'*Mbar);  
-h = sparse(S'*Qbar*T*x0 + Mbar'*T*x0);
 c = x0'*T'*Qbar*T*x0;
+
+% Stabilizing version
+% h = sparse(S'*Qbar*T*x0 + Mbar'*T*x0);
+
+% Reference tracking version
+h = sparse(S'*Qbar*(T*x0 - x_ref) + Mbar'*(T*x0 - x_ref) );
 
 end

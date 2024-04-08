@@ -10,6 +10,7 @@ x0 = variables_struc.x0;
 Np = variables_struc.Np;
 terminal_set = variables_struc.terminal_set;
 payload = variables_struc.payload;
+trj_tracking = variables_struc.trj_tracking;
 mhat = variables_struc.mhat;
 
 if payload
@@ -45,6 +46,15 @@ Vf = zeros(1,Tvec);                % terminal cost sequence
 l = zeros(1,Tvec);                 % stage cost sequence
 inSet = zeros(1,Tvec);             % Whether in Xf at time step
 
+if trj_tracking
+    if size(variables_struc.trj,2) ~= Tvec
+        size(variables_struc.trj,2)
+        Tvec
+        error("Trajectory does not have the correct length")
+    end
+    trj = [variables_struc.trj,repmat(variables_struc.trj(:,end), 1, Np)];
+end
+
 x(:,1) = x0';
 
 %% Prediction model and cost function
@@ -77,7 +87,13 @@ for k = 1:1:Tvec
 
     % determine reference states based on reference input r
     x0 = x(:,k);
-    [H,h,~]=costgen(A_lift,B_lift,Q,R,dim,x0,P,M);
+    if trj_tracking
+        x_ref = trj(:,k:k+Np);
+        x_ref = reshape(x_ref,[],1);
+        [H,h,~]=costgen(A_lift,B_lift,Q,R,dim,x0,P,M,x_ref);
+    else
+        [H,h,~]=costgen(A_lift,B_lift,Q,R,dim,x0,P,M);
+    end
     b_con = b_con_lim - b_con_x0*x0;
 
     % solve QP problem
