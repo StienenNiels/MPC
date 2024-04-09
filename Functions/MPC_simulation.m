@@ -10,6 +10,7 @@ x0 = variables_struc.x0;
 Np = variables_struc.Np;
 terminal_set = variables_struc.terminal_set;
 payload = variables_struc.payload;
+payload_time = variables_struc.payload_time;
 trj_tracking = variables_struc.trj_tracking;
 mhat = variables_struc.mhat;
 
@@ -111,7 +112,7 @@ for k = 1:1:Tvec
     u(:,k) = u_N(1:4); % MPC control action
 
     % Simulate payload dropping without changing dynamics mpc uses
-    if k == 50 && payload
+    if k == payload_time/dt && payload
         params.m = params.m_tricopter;
     end
     

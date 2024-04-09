@@ -1,9 +1,9 @@
-function visualize_tricopter_trajectory_vid(states_trajectory,control_input,params,payload,pause_duration)
+function visualize_tricopter_trajectory_vid(states_trajectory,control_input,params,payload,payload_time,pause_duration)
     % plots the trajectory of the tricopter given the 
     % provided states_trajectory and control_inputs
     
     %% INIT
-    if (nargin == 4)
+    if (nargin == 5)
         pause_duration = 0;
     end
 
@@ -75,7 +75,7 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
         A2 = Rt*([-l2 -l2; -l3 l3;0 0]) + X(k,1:3)';
 
         % define payload
-        if payload && k>50
+        if payload && k>payload_time
             if P1(3) < 0.9*wz
                 P1_acc = m_payload*params.g;
                 P1_vel = P1_acc*0.1 + P1_vel;

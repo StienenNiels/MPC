@@ -13,6 +13,7 @@ addpath("Plotting")
 variables_struc.simTime = 20;
 variables_struc.dt = 0.1;
 variables_struc.Np = 25;
+variables_struc.payload_time = 10;
 variables_struc.payload = false;
 variables_struc.terminal_set = true;
 variables_struc.trj_tracking = false;
@@ -176,4 +177,6 @@ legend(legendStrings, "Interpreter","latex");
 % To be added
 
 payload = variables_struc.payload;
-visualize_tricopter_trajectory_vid(y,u,params,payload,0.1);
+payload_time = variables_struc.payload_time;
+dt = variables_struc.dt;
+visualize_tricopter_trajectory_vid(y,u,params,payload,payload_time/dt,0.1);
