@@ -8,7 +8,7 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,params,p
     end
 
     % X is the 6-states of the tricopter
-    X = states_trajectory(:,[10 11 12 7 8 9]);
+    X = states_trajectory(:,[10 11 12 4 5 6]);
     U = control_input(:,4);
     [N,~] = size(X);
 
@@ -92,6 +92,11 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,params,p
         view(3);
         % view([15 25]);
         % view([0 90]);
+
+        % Set axes labels
+        xlabel("X")
+        ylabel("Y")
+        zlabel("Z")
         
         set(gca,'box','on')
         drawnow   
@@ -105,7 +110,7 @@ function visualize_tricopter_trajectory(states_trajectory,control_input,params,p
         
         phi = Xrot(1);
         theta = Xrot(2);
-        psi = Xrot(3);
+        psi = -Xrot(3);
 
         Rpsi = [cos(psi)  -sin(psi)   0;
                 sin(psi)  cos(psi)    0;
