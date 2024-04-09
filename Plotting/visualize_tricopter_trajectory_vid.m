@@ -106,6 +106,11 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
         view(3); %3D view
         % view([15 25]);
         % view([0 90]); %Top down view
+
+        % Set axes labels
+        xlabel("X")
+        ylabel("Y")
+        zlabel("Z")
         
         set(gca,'box','on')
         drawnow   
@@ -128,7 +133,7 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
         
         phi = Xrot(1);
         theta = Xrot(2);
-        psi = Xrot(3);
+        psi = -Xrot(3);
 
         Rpsi = [cos(psi)  -sin(psi)   0;
                 sin(psi)  cos(psi)    0;
