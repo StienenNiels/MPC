@@ -33,20 +33,21 @@ t = linspace(0, pi/2, Nsteps/4);
 variables_struc.trj(6,Nsteps/4+1:Nsteps/2) = -t;
 variables_struc.trj(6,Nsteps/2+1:end) = -pi/2;
 variables_struc.trj(10,Nsteps/4+1:Nsteps/2) = -2*sin(t);
-variables_struc.trj(11,Nsteps/4+1:Nsteps/2) = 2-2*cos(t);
+variables_struc.trj(11,Nsteps/4+1:Nsteps/2) = -2+2*cos(t);
 variables_struc.trj(12,Nsteps/2+1:3*Nsteps/4) = linspace(0,-2,Nsteps/4);
 variables_struc.trj(10,Nsteps/2+1:end) = -2;
-variables_struc.trj(11,Nsteps/2+1:end) = 2;
+variables_struc.trj(11,Nsteps/2+1:end) = -2;
 variables_struc.trj(12,3*Nsteps/4+1:end) = -2;
 
-% Figure used for verifying trajectory
+% % Figure used for verifying trajectory
 % figure(85), clf;
-% plot3(variables_struc.trj(10,:),variables_struc.trj(11,:),variables_struc.trj(12,:))
+% % plot3(variables_struc.trj(10,:),variables_struc.trj(11,:),variables_struc.trj(12,:))
+% plot(variables_struc.trj(6,:))
 % %%
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-variables_struc.x0 = [0 0 0 0 0 0 0 0 0 1 0 1]';
+variables_struc.x0 = [0 0 0 0 0 0 0 0 0 0 0 0]';
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
