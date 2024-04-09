@@ -52,7 +52,7 @@ if trj_tracking
         Tvec
         error("Trajectory does not have the correct length")
     end
-    trj = [variables_struc.trj,repmat(variables_struc.trj(:,end), 1, Np)];
+    trj = [variables_struc.trj,repmat(variables_struc.trj(:,end), 1, Np+1)];
 end
 
 x(:,1) = x0';
@@ -89,7 +89,12 @@ for k = 1:1:Tvec
     x0 = x(:,k);
     if trj_tracking
         x_ref = trj(:,k:k+Np);
-        x_ref(6,:) = atan2(trj(11,k:k+Np),-trj(10,k:k+Np));
+        psi_ref = x(6,k);
+        Rpsi = [cos(psi_ref)  -sin(psi_ref);
+                sin(psi_ref)  cos(psi_ref)];
+        dxy = Rpsi*trj(10:11,k:k+Np+1);
+        dpsi = atan2(dxy(2,2:end)-dxy(2,1:end-1),-dxy(1,2:end)+dxy(1,1:end-1));
+        x_ref(6,:) = psi_ref + dpsi;
         x_ref = reshape(x_ref,[],1);
         [H,h,~]=costgen(A_lift,B_lift,Q,R,dim,x0,P,M,x_ref);
     else

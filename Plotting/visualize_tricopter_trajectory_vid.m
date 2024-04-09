@@ -103,9 +103,9 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
         
         % set axes
         axis(Ax);
-        view(3); %3D view
+        % view(3); %3D view
         % view([15 25]);
-        % view([0 90]); %Top down view
+        view([0 90]); %Top down view
 
         % Set axes labels
         xlabel("X")
