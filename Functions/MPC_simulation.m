@@ -98,11 +98,12 @@ for k = 1:1:Tvec
         x_ref(6,:) = psi_ref + dpsi;
         x_ref = reshape(x_ref,[],1);
         [H,h,~]=costgen(A_lift,B_lift,Q,R,dim,x0,P,M,x_ref);
+        b_con = b_con_lim - b_con_x0*x0 + b_con_xref*x_ref;
     else
         [H,h,~]=costgen(A_lift,B_lift,Q,R,dim,x0,P,M);
+        b_con = b_con_lim - b_con_x0*x0;
     end
-    b_con = b_con_lim - b_con_x0*x0 + b_con_xref*x_ref;
-
+    
     % solve QP problem
     warning off
     opts = optimoptions('quadprog','Display','off','Algorithm','interior-point-convex','LinearSolver','sparse');
@@ -122,9 +123,7 @@ for k = 1:1:Tvec
                  params.trim.Omega1;
                  params.trim.Omega2;
                  params.trim.Omega3];
-    if k > 45 && k < 70
-        mhat;
-    end
+
     %Input constraints
     u_cont_up = [3000-params.trim.Omega1;3000-params.trim.Omega2;3000-params.trim.Omega3;pi/2-params.trim.mu];
     u_cont_low = [params.trim.Omega1;params.trim.Omega2;params.trim.Omega3;pi/2+params.trim.mu];
