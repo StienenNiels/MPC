@@ -89,6 +89,7 @@ for k = 1:1:Tvec
     x0 = x(:,k);
     if trj_tracking
         x_ref = trj(:,k:k+Np);
+        x_ref(6,:) = atan2(trj(11,k:k+Np),-trj(10,k:k+Np));
         x_ref = reshape(x_ref,[],1);
         [H,h,~]=costgen(A_lift,B_lift,Q,R,dim,x0,P,M,x_ref);
     else
