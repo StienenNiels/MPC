@@ -1,11 +1,10 @@
-function visualize_tricopter_trajectory_vid(states_trajectory,control_input,params,payload,payload_time,pause_duration)
+function visualize_tricopter_trajectory_vid(states_trajectory,control_input,params,variables_struc,pause_duration)
     % plots the trajectory of the tricopter given the 
     % provided states_trajectory and control_inputs
     
-    %% INIT
-    if (nargin == 5)
-        pause_duration = 0;
-    end
+    payload = variables_struc.payload;
+    payload_time = variables_struc.payload_time/variables_struc.dt;
+    trj = variables_struc.trj;
 
     % X is the 6-states of the tricopter
     X = states_trajectory(:,[10 11 12 4 5 6]);
@@ -42,7 +41,7 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
     w = 3;
     wz = 3;
     
-    Ax = [-w+x_r w+x_r -w+y_r w+y_r -wz+z_r wz+z_r];
+    Ax = [-w+x_r w+x_r -w+y_r w+y_r 0 wz+z_r];
 
 
     % Get the screen size
@@ -52,8 +51,8 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
     set(fig, 'Position', [screen_size(1) screen_size(1) screen_size(4) screen_size(4)]);
 
     % Create a VideoWriter object to save the frames as a video
-    video_filename = 'trajectory_video.avi';
-    writerObj = VideoWriter(video_filename);
+    video_filename = 'trajectory_video.mp4';
+    writerObj = VideoWriter(video_filename, "MPEG-4");
     writerObj.FrameRate = 10; % Adjust the frame rate as needed
     open(writerObj);
 
@@ -76,12 +75,12 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
 
         % define payload
         if payload && k>payload_time
-            if P1(3) < 0.9*wz
-                P1_acc = m_payload*params.g;
+            if P1(3) > 0.1
+                P1_acc = -m_payload*params.g;
                 P1_vel = P1_acc*0.1 + P1_vel;
                 P1 = P1 + [0;0;P1_vel*0.1];
             else
-                P1 = [P1(1:2);wz];
+                P1 = [P1(1:2);0];
             end
         else
             P1 = X(k,1:3)';
@@ -91,11 +90,15 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
         plot3( x_r,y_r,z_r,'r.');
         hold on
         
+        % plot full desired trajectory and actual trajectory up to k
+        plot3(trj(10,:),trj(11,:),trj(12,:));
+        plot3(X(1:k,1),X(1:k,2),X(1:k,3));
+
         % plot tricopter frame cross and circles
         plot3( A1(1,:),A1(2,:),A1(3,:),'k',A2(1,:),A2(2,:),A2(3,:),'k');
         plot3( R1(1,:),R1(2,:),R1(3,:),'r',R2(1,:),R2(2,:),R2(3,:),'b',R3(1,:),R3(2,:),R3(3,:),'b');
         plot3( P1(1,:),P1(2,:),P1(3,:),'o','Color','b','MarkerSize',10,'MarkerFaceColor','#D9FFFF')
-        set ( gca, 'zdir', 'reverse' )
+        % set ( gca, 'zdir', 'reverse' )
         set ( gca, 'ydir', 'reverse' )
 
         hold off
@@ -137,7 +140,7 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
 
         Rpsi = [cos(psi)  -sin(psi)   0;
                 sin(psi)  cos(psi)    0;
-                0         0           1];
+                0         0           -1];
 
         % rotation around y with theta
         Rtheta = [cos(theta)    0       sin(theta);
