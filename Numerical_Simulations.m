@@ -10,22 +10,15 @@ addpath("Plotting")
 %% Tunable variables/parameters
 % Default settings for all cases
 % simulation time
-variables_struc.simTime = 20;
+variables_struc.simTime = 14;
+variables_struc.T_segment = 3;
 variables_struc.dt = 0.1;
 variables_struc.Np = 25;
-variables_struc.payload_time = 10;
+variables_struc.payload_time = 5;
 variables_struc.payload = false;
 variables_struc.terminal_set = true;
 variables_struc.trj_tracking = false;
-Nsteps = variables_struc.simTime/variables_struc.dt;
-
-% Define a trajectory to follow
-variables_struc.trj = zeros(16,Nsteps);
-t = linspace(0, pi, Nsteps/2);
-variables_struc.trj(10,Nsteps/4+1:3*Nsteps/4) = 0.5*-sin(t);
-variables_struc.trj(11,Nsteps/4+1:3*Nsteps/4) = 0.5*(-1+cos(t));
-variables_struc.trj(10,3*Nsteps/4+1:end) = linspace(0,1,Nsteps/4);
-variables_struc.trj(11,3*Nsteps/4+1:end) = -2;
+variables_struc.trj = trajectory(variables_struc.T_segment, variables_struc.dt);
 
 % % Figure used for verifying trajectory
 % figure(85), clf;
@@ -34,11 +27,11 @@ variables_struc.trj(11,3*Nsteps/4+1:end) = -2;
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-variables_struc.x0 = [0 0 0 0 0 0 0 0 0 0 0 0]';
+variables_struc.x0 = [0 0 0 0 0 0 0 0 0 1 0 1]';
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-variables_struc.Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,5,100,100,300);
+variables_struc.Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,5,500,500,500);
 
 % Input weights
 % [Omega1 Omega2 Omega3 mu]
@@ -120,13 +113,16 @@ for var = var_range
         legName   = sprintf('Payload');
     case 6 % Trajectory tracking
         variables_struc.trj_tracking = true;
-        variables_struc.x0 = [0 0 0 0 0 0 0 0 0 0 0 0]';
+        variables_struc.simTime = 7*variables_struc.T_segment;
+        variables_struc.x0 = [0 0 0 0 0 -pi 0 0 0 -2 2 0]';
         fieldName = sprintf('trajectory');
         legName   = sprintf('Trajectory');
     case 7 % Trajectory tracking with payload
         variables_struc.payload = true;
         variables_struc.trj_tracking = true;
-        variables_struc.x0 = [0 0 0 0 0 0 0 0 0 0 0 0]';
+        variables_struc.simTime = size(variables_struc.trj,2)*variables_struc.dt;
+        variables_struc.payload_time = 3*variables_struc.T_segment;
+        variables_struc.x0 = [0 0 0 0 0 -pi 0 0 0 -2 2 0]';
         fieldName = sprintf('trajectory');
         legName   = sprintf('Trajectory');
     otherwise % Invalid case selected
@@ -175,8 +171,4 @@ legend(legendStrings, "Interpreter","latex");
 
 %% Generate report level plots
 % To be added
-
-payload = variables_struc.payload;
-payload_time = variables_struc.payload_time;
-dt = variables_struc.dt;
-visualize_tricopter_trajectory_vid(y,u,params,payload,payload_time/dt,0.1);
+visualize_tricopter_trajectory_vid(y,u,params,variables_struc,0.1);
