@@ -8,6 +8,7 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
 
     % X is the 6-states of the tricopter
     X = states_trajectory(:,[10 11 12 4 5 6]);
+    X(:,3) = -X(:,3);
     U = control_input(:,4);
     [N,~] = size(X);
 
@@ -91,7 +92,7 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
         hold on
         
         % plot full desired trajectory and actual trajectory up to k
-        plot3(trj(10,:),trj(11,:),trj(12,:));
+        plot3(trj(10,:),trj(11,:),-trj(12,:));
         plot3(X(1:k,1),X(1:k,2),X(1:k,3));
 
         % plot tricopter frame cross and circles
@@ -140,7 +141,7 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
 
         Rpsi = [cos(psi)  -sin(psi)   0;
                 sin(psi)  cos(psi)    0;
-                0         0           -1];
+                0         0           1];
 
         % rotation around y with theta
         Rtheta = [cos(theta)    0       sin(theta);

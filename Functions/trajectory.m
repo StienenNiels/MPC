@@ -21,19 +21,19 @@ trj = zeros(16,T7);
 
 % Coordinates along route
 P0 = [-2;2;0];
-P1 = [-2;2;2];
-P2 = [2;2;2];
-Pwait = [2;1;2];
-P3 = [2;0;2];
-P4 = [-2;0;2];
-P5 = [-2;1;2];
-P6 = [-2;2;1];
+P1 = [-2;2;-2];
+P2 = [2;2;-2];
+Pwait = [2;1;-2];
+P3 = [2;0;-2];
+P4 = [-2;0;-2];
+P5 = [-2;1;-2];
+P6 = [-2;2;-1];
 P7 = [-2;2;0];
 
 % Line segment 1
 X01 = zeros(1,Ts);
 Y01 = zeros(1,Ts);
-Z01 = linspace(0,2,Ts);
+Z01 = linspace(0,-2,Ts);
 trj(10:12,1:T1) = [X01;Y01;Z01] + P0;
 
 % Line segment 2
@@ -78,12 +78,12 @@ trj(10:12,T4+1:T5) = [X45;Y45;Z45] + P4;
 angle = linspace(0,pi/2,Ts);
 X56 = zeros(1,Ts);
 Y56 = (sin(angle));
-Z56 = (cos(angle)-1);
+Z56 = (1-cos(angle));
 trj(10:12,T5+1:T6) = [X56;Y56;Z56] + P5;
 
 % Line segment 7
 X67 = zeros(1,Ts);
 Y67 = zeros(1,Ts);
-Z67 = linspace(0,-1,Ts);
+Z67 = linspace(0,1,Ts);
 trj(10:12,T6+1:T7) = [X67;Y67;Z67] + P6;
 end
