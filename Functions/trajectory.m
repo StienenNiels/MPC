@@ -10,7 +10,7 @@ T2 = T1+Ts;
 T31 = T2 + Ts/2;
 T32 = T31 + Ts;
 T33 = T32 + Ts/2;
-T3 = T33+Ts;
+T3 = T33;
 T4 = T3+Ts;
 T5 = T4+Ts;
 T6 = T5+Ts;
@@ -23,6 +23,7 @@ trj = zeros(16,T7);
 P0 = [-2;2;0];
 P1 = [-2;2;2];
 P2 = [2;2;2];
+Pwait = [2;1;2];
 P3 = [2;0;2];
 P4 = [-2;0;2];
 P5 = [-2;1;2];
@@ -52,13 +53,13 @@ trj(10:12,T2+1:T31) = [X23;Y23;Z23] + P2;
 X23 = zeros(1,Ts);
 Y23 = zeros(1,Ts);
 Z23 = zeros(1,Ts);
-trj(10:12,T31+1:T32) = [X23;Y23;Z23] + P2;
+trj(10:12,T31+1:T32) = [X23;Y23;Z23] + Pwait;
 
 % Start moving again
 X23 = zeros(1,Ts/2);
 Y23 = linspace(0,-1,Ts/2);
 Z23 = zeros(1,Ts/2);
-trj(10:12,T32+1:T33) = [X23;Y23;Z23] + P2;
+trj(10:12,T32+1:T3) = [X23;Y23;Z23] + Pwait;
 
 % Line segment 4
 angle = linspace(0,pi,Ts);
