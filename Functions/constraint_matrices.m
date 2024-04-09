@@ -1,4 +1,4 @@
-function [A_con,b_con_lim,b_con_x0,Xf_set_H,Xf_set_h] = constraint_matrices(A_lift,B_lift,u_cont_up,u_cont_low,x_con,A,B,Q,R,M,N, terminal_set)
+function [A_con,b_con_lim,b_con_x0,Xf_set_H,Xf_set_h,b_con_xref] = constraint_matrices(A_lift,B_lift,u_cont_up,u_cont_low,x_con,A,B,Q,R,M,N, terminal_set)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -27,4 +27,5 @@ g_tilde = repmat(g,[N 1]);
 A_con = sparse([F_tilde*B_lift; G_tilde]);
 b_con_lim = sparse([f_tilde; g_tilde]);
 b_con_x0  = sparse([F_tilde*A_lift; zeros(size(g_tilde,1),size(F_tilde*A_lift,2))]);
+b_con_xref  = sparse([F_tilde; zeros(size(g_tilde,1),size(F_tilde,2))]);
 end

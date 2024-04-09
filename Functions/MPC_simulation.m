@@ -73,7 +73,7 @@ x_con = [100*ones(3,1); pi/2;pi/2;2*pi; 100*ones(10,1)];
 u_cont_up = [3000-params.trim.Omega1;3000-params.trim.Omega2;3000-params.trim.Omega3;pi/2-params.trim.mu];
 u_cont_low = [params.trim.Omega1;params.trim.Omega2;params.trim.Omega3;pi/2+params.trim.mu];
 
-[A_con,b_con_lim,b_con_x0,Xf_set_H,Xf_set_h] = constraint_matrices(A_lift,B_lift,u_cont_up,u_cont_low,x_con,A,B,Q,R,M,Np, terminal_set);
+[A_con,b_con_lim,b_con_x0,Xf_set_H,Xf_set_h,b_con_xref] = constraint_matrices(A_lift,B_lift,u_cont_up,u_cont_low,x_con,A,B,Q,R,M,Np, terminal_set);
 
 %%
 tic
@@ -100,7 +100,7 @@ for k = 1:1:Tvec
     else
         [H,h,~]=costgen(A_lift,B_lift,Q,R,dim,x0,P,M);
     end
-    b_con = b_con_lim - b_con_x0*x0;
+    b_con = b_con_lim - b_con_x0*x0 + b_con_xref*x_ref;
 
     % solve QP problem
     warning off
