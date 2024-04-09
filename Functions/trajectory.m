@@ -15,6 +15,7 @@ T4 = T3+2*Ts;
 T5 = T4+Ts;
 T6 = T5+Ts;
 T7 = T6+Ts;
+T8 = T7+Ts/2;
 
 % Define a trajectory to follow
 trj = zeros(16,T7);
@@ -86,4 +87,10 @@ X67 = zeros(1,Ts);
 Y67 = zeros(1,Ts);
 Z67 = linspace(0,1,Ts);
 trj(10:12,T6+1:T7) = [X67;Y67;Z67] + P6;
+
+% Stationary end
+X78 = zeros(1,Ts/2);
+Y78 = zeros(1,Ts/2);
+Z78 = zeros(1,Ts/2);
+trj(10:12,T7+1:T8) = [X78;Y78;Z78] + P7 + [0;0;-0.1]; % So it stays visible in the plot
 end

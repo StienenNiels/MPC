@@ -10,7 +10,7 @@ addpath("Plotting")
 %% Tunable variables/parameters
 % Default settings for all cases
 % simulation time
-variables_struc.simTime = 14;
+variables_struc.simTime = 5;
 variables_struc.T_segment = 3;
 variables_struc.dt = 0.1;
 variables_struc.Np = 25;
@@ -60,11 +60,12 @@ switch n
         var_range = 1;
     case 1 % Sampling time variation
         Np_seconds = 3; % Based on simulations so far 3 is about average
-        dt = [0.1, 0.2, 0.5];
+        dt = [0.05 0.1, 0.2, 0.5];
+        variables_struc.terminal_set = false;
         var_range = 1:size(dt,2);
     case 2 % Prediction horizon variation
         % Np = [2, 5, 10, 20, 25, 30, 35, 40, 50];
-        Np = [2,5,10,20,25,30,35];
+        Np = [2,5,10,25,50];
         var_range = 1:size(Np,2);
     case 3 % Test settling time based on different x0
         Nsim = input('Number of random simulations: ');
@@ -147,7 +148,18 @@ for var = var_range
     result.(fieldName).trim = trim;
 
     % Initial plot (NOT the report level plots)
-    plot_2D_plots_consecutive(t, y, u, trim, params, true);
+    switch n
+        case 1 % Sampling time variation
+            plot_sampling_time(t, y, u, trim, params, true);
+        case 2 % Sampling time variation
+            plot_sampling_time(t, y, u, trim, params, true);
+        case 3 % Sampling time variation
+            plot_sampling_time(t, y, u, trim, params, true);
+        case 4 % Sampling time variation
+            plot_L(t, y, u, trim, params, true);
+        otherwise
+            plot_2D_plots_consecutive(t, y, u, trim, params, true);
+    end
 
     % Check what the settling time is
     is_settled = y(:,[4:6, 10:12]) > -0.01 & y(:,[4:6, 10:12]) < 0.01;
@@ -164,13 +176,29 @@ end
 avg_settling = mean(settling_time);
 fprintf("Settling time is %.2f seconds on average\n", avg_settling)
 
+%% Generate report level plots
 % Add legend to the plot and set y limits
-plot_2D_plots_set_limits(params);
-legend(legendStrings, "Interpreter","latex");
+switch n
+    case 1 % Sampling time variation
+        plot_sampling_time_limits(params);
+        legend(legendStrings, "Interpreter","latex");
+    case 2 % Sampling time variation
+        plot_sampling_time_limits(params);
+        legend(legendStrings, "Interpreter","latex");
+    case 3
+        plot_sampling_time_limits(params);
+    case 4 % Sampling time variation
+        plot_L_limits(params);
+        legend(legendStrings, "Interpreter","latex");
+    case 7 % Trajectory with payload
+        plot_trj(t, y, u, trim, params);
+        % visualize_tricopter_trajectory_vid(y,u,params,variables_struc,0.1);
+    otherwise
+        plot_2D_plots_set_limits(params);
+        legend(legendStrings, "Interpreter","latex");
+end
+
+% visualize_tricopter_trajectory_vid(y,u,params,variables_struc,0.1);
 
 %% Save the simulation data to a structure to reuse later
 % To be added
-
-%% Generate report level plots
-% To be added
-visualize_tricopter_trajectory_vid(y,u,params,variables_struc,0.1);

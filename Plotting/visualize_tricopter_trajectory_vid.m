@@ -39,8 +39,8 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
     clf;
     
     % define plot axes limits
-    w = 3;
-    wz = 3;
+    w = 2.5;
+    wz = 2.5;
     
     Ax = [-w+x_r w+x_r -w+y_r w+y_r 0 wz+z_r];
 
@@ -87,20 +87,21 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
             P1 = X(k,1:3)';
         end
         
-        % plot coordinate reference
-        plot3( x_r,y_r,z_r,'r.');
-        hold on
+        % % plot coordinate reference
+        % plot3( x_r,y_r,z_r,'r.');
+        
         
         % plot full desired trajectory and actual trajectory up to k
-        plot3(trj(10,:),trj(11,:),-trj(12,:));
-        plot3(X(1:k,1),X(1:k,2),X(1:k,3));
+        plot3(trj(10,:),trj(11,:),-trj(12,:), "LineStyle","--","Color","#666666", "LineWidth",1.2);
+        hold on
+        plot3(X(1:k,1),X(1:k,2),X(1:k,3), "Color","#7E2F8E","LineWidth",1.2);
 
         % plot tricopter frame cross and circles
-        plot3( A1(1,:),A1(2,:),A1(3,:),'k',A2(1,:),A2(2,:),A2(3,:),'k');
-        plot3( R1(1,:),R1(2,:),R1(3,:),'r',R2(1,:),R2(2,:),R2(3,:),'b',R3(1,:),R3(2,:),R3(3,:),'b');
-        plot3( P1(1,:),P1(2,:),P1(3,:),'o','Color','b','MarkerSize',10,'MarkerFaceColor','#D9FFFF')
+        plot3(A1(1,:),A1(2,:),A1(3,:),'k',A2(1,:),A2(2,:),A2(3,:),'k');
+        plot3(R1(1,:),R1(2,:),R1(3,:),'r',R2(1,:),R2(2,:),R2(3,:),'b',R3(1,:),R3(2,:),R3(3,:),'b');
+        plot3(P1(1,:),P1(2,:),P1(3,:),'o','Color','b','MarkerSize',10,'MarkerFaceColor','#D9FFFF')
         % set ( gca, 'zdir', 'reverse' )
-        set ( gca, 'ydir', 'reverse' )
+        set (gca, 'ydir', 'reverse')
 
         hold off
         grid();
@@ -112,9 +113,9 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
         % view([0 90]); %Top down view
 
         % Set axes labels
-        xlabel("X")
-        ylabel("Y")
-        zlabel("Z")
+        xlabel("X [m]",'interpreter','latex')
+        ylabel("Y [m]",'interpreter','latex')
+        zlabel("Z [m]",'interpreter','latex')
         
         set(gca,'box','on')
         drawnow   
