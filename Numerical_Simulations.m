@@ -31,7 +31,7 @@ variables_struc.x0 = [0 0 0 0 0 0 0 0 0 1 0 1]';
 
 % State weights
 % [u v w phi theta psi p q r X_b Y_b Z_b]
-variables_struc.Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,5,500,500,500);
+variables_struc.Q = 100*blkdiag(1,1,1,0.5,0.5,10,10,10,5,500,500,300);
 
 % Input weights
 % [Omega1 Omega2 Omega3 mu]
@@ -108,7 +108,9 @@ for var = var_range
         legName   = sprintf('$$L_{scale} = %g$$', L_scale(var));
     case 5 % Payload dropping
         variables_struc.payload = true;
-        variables_struc.simTime = 10;
+        variables_struc.payload_time = 2;
+        variables_struc.simTime = 5;
+        variables_struc.x0 = [0 0 0 0 0 0 0 0 0 0 0 0]';
         fieldName = sprintf('payload');
         legName   = sprintf('Payload');
     case 6 % Trajectory tracking

@@ -11,7 +11,7 @@ T31 = T2 + Ts/2;
 T32 = T31 + Ts;
 T33 = T32 + Ts/2;
 T3 = T33;
-T4 = T3+Ts;
+T4 = T3+2*Ts;
 T5 = T4+Ts;
 T6 = T5+Ts;
 T7 = T6+Ts;
@@ -62,10 +62,10 @@ Z23 = zeros(1,Ts/2);
 trj(10:12,T32+1:T3) = [X23;Y23;Z23] + Pwait;
 
 % Line segment 4
-angle = linspace(0,pi,Ts);
+angle = linspace(0,pi,2*Ts);
 X34 = 2*(cos(angle)-1);
 Y34 = 2*(-sin(angle));
-Z34 = zeros(1,Ts);
+Z34 = zeros(1,2*Ts);
 trj(10:12,T3+1:T4) = [X34;Y34;Z34] + P3;
 
 % Line segment 5
