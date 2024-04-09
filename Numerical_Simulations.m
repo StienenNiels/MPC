@@ -29,21 +29,20 @@ Nsteps = variables_struc.simTime/variables_struc.dt;
 
 % Define a trajectory to follow
 variables_struc.trj = zeros(16,Nsteps);
-t = linspace(0, pi/2, Nsteps/4);
-variables_struc.trj(6,Nsteps/4+1:Nsteps/2) = -t;
-variables_struc.trj(6,Nsteps/2+1:end) = -pi/2;
-variables_struc.trj(10,Nsteps/4+1:Nsteps/2) = -2*sin(t);
-variables_struc.trj(11,Nsteps/4+1:Nsteps/2) = -2+2*cos(t);
-variables_struc.trj(12,Nsteps/2+1:3*Nsteps/4) = linspace(0,-2,Nsteps/4);
-variables_struc.trj(10,Nsteps/2+1:end) = -2;
-variables_struc.trj(11,Nsteps/2+1:end) = -2;
-variables_struc.trj(12,3*Nsteps/4+1:end) = -2;
+t = linspace(0, pi, Nsteps/2);
+% variables_struc.trj(6,Nsteps/4+1:3*Nsteps/4) = -t;
+% variables_struc.trj(6,3*Nsteps/4+1:end) = -pi;
+variables_struc.trj(10,Nsteps/4+1:3*Nsteps/4) = -sin(t);
+variables_struc.trj(11,Nsteps/4+1:3*Nsteps/4) = -1+cos(t);
+variables_struc.trj(10,3*Nsteps/4+1:end) = linspace(0,1,Nsteps/4);
+% variables_struc.trj(10,3*Nsteps/4+1:end) = 0;
+variables_struc.trj(11,3*Nsteps/4+1:end) = -2;
+% variables_struc.trj(12,3*Nsteps/4+1:end) = -1;
 
-% % Figure used for verifying trajectory
-% figure(85), clf;
-% % plot3(variables_struc.trj(10,:),variables_struc.trj(11,:),variables_struc.trj(12,:))
-% plot(variables_struc.trj(6,:))
-% %%
+% Figure used for verifying trajectory
+figure(85), clf;
+plot3(variables_struc.trj(10,:),variables_struc.trj(11,:),variables_struc.trj(12,:))
+%%
 
 % Initial conditions
 % [u v w phi theta psi p q r X_b Y_b Z_b]
