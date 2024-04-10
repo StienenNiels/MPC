@@ -124,7 +124,7 @@ for var = var_range
         variables_struc.payload = true;
         variables_struc.trj_tracking = true;
         variables_struc.simTime = size(variables_struc.trj,2)*variables_struc.dt;
-        variables_struc.payload_time = 3*variables_struc.T_segment;
+        variables_struc.payload_time = 2.65*variables_struc.T_segment;
         variables_struc.x0 = [0 0 0 0 0 -pi 0 0 0 -2 2 0]';
         fieldName = sprintf('trajectory');
         legName   = sprintf('Trajectory');
@@ -198,7 +198,8 @@ switch n
         legend(legendStrings, "Interpreter","latex");
 end
 
-% visualize_tricopter_trajectory_vid(y,u,params,variables_struc,0.1);
+visualize_tricopter_trajectory_vid(y,u,params,variables_struc,0.1);
+%axis equal
 
 %% Save the simulation data to a structure to reuse later
 % To be added

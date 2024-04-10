@@ -44,7 +44,6 @@ function visualize_tricopter_trajectory_vid(states_trajectory,control_input,para
     
     Ax = [-w+x_r w+x_r -w+y_r w+y_r 0 wz+z_r];
 
-
     % Get the screen size
     screen_size = get(0, 'ScreenSize');
     
