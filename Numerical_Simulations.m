@@ -53,6 +53,7 @@ disp("Case 4: Influence of delta_u weighing matrix")
 disp("Case 5: Payload dropping")
 disp("Case 6: Trajectory tracking")
 disp("Case 7: Trajectory tracking with payload drop")
+disp("Case 8: LQR and MPC comparison")
 n = input('Select a case: ');
 
 switch n
@@ -77,7 +78,9 @@ switch n
         var_range = 1;
     case 6 % Trajectory tracking
         var_range = 1;
-    case 7 
+    case 7 % Trajectory tracking with payload
+        var_range = 1;
+    case 8 % LQR and MPC comparison
         var_range = 1;
     otherwise % Invalid case selected
         error('Invalid case selected')
@@ -128,6 +131,14 @@ for var = var_range
         variables_struc.x0 = [0 0 0 0 0 -pi 0 0 0 -2 2 0]';
         fieldName = sprintf('trajectory');
         legName   = sprintf('Trajectory');
+    case 8 % LQR and MPC comparison
+        variables_struc.x0 = [0 0 0 0 0 -pi 0 0 0 -2 1 2]';
+        [t, y, u, trim] = LQR_simulation(variables_struc,params);
+        plot_sampling_time(t, y, u, trim, params, true);
+        legName   = sprintf('LQR');
+        legendStrings{end+1} = legName;
+        fieldName = sprintf('MPC');
+        legName   = sprintf('MPC'); 
     otherwise % Invalid case selected
         error('Case not implemented')
     end
@@ -157,6 +168,8 @@ for var = var_range
             plot_sampling_time(t, y, u, trim, params, true);
         case 4 % Sampling time variation
             plot_L(t, y, u, trim, params, true);
+        case 8 % Plot LQR and MPC comparison
+            plot_sampling_time(t, y, u, trim, params, true);
         otherwise
             plot_2D_plots_consecutive(t, y, u, trim, params, true);
     end
@@ -193,12 +206,16 @@ switch n
     case 7 % Trajectory with payload
         plot_trj(t, y, u, trim, params);
         % visualize_tricopter_trajectory_vid(y,u,params,variables_struc,0.1);
+    case 8 % LQR and MPC comparison
+        plot_sampling_time_limits(params);
+        legend(legendStrings, "Interpreter","latex");
     otherwise
         plot_2D_plots_set_limits(params);
         legend(legendStrings, "Interpreter","latex");
+        visualize_tricopter_trajectory_vid(y,u,params,variables_struc,0.1);
 end
 
-visualize_tricopter_trajectory_vid(y,u,params,variables_struc,0.1);
+
 %axis equal
 
 %% Save the simulation data to a structure to reuse later
