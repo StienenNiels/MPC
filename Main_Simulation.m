@@ -206,7 +206,7 @@ switch n
         legend(legendStrings, "Interpreter","latex");
     case 7 % Trajectory with payload
         plot_trj(t, y, u, trim, params);
-        % visualize_tricopter_trajectory_vid(y,u,params,variables_struc,0.1);
+        visualize_tricopter_trajectory_vid(y,u,params,variables_struc,0.1);
     case 8 % LQR and MPC comparison
         plot_sampling_time_limits(params);
         legend(legendStrings, "Interpreter","latex");

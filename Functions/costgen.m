@@ -28,6 +28,6 @@ c = x0'*T'*Qbar*T*x0;
 % h = sparse(S'*Qbar*T*x0 + Mbar'*T*x0);
 
 % Reference tracking version
-h = sparse(S'*Qbar*(T*x0 - x_ref) + Mbar'*(T*x0 - x_ref) -Rbar*u_ref);
+h = sparse(S'*Qbar*(T*x0 - x_ref) + Mbar'*(T*x0 - x_ref));
 
 end

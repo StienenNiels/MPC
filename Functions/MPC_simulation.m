@@ -79,6 +79,8 @@ u_cont_low = [params.trim.Omega1;params.trim.Omega2;params.trim.Omega3;pi/2+para
 
 %% OTS calculation offline
 if ots
+    
+    N_ots = size(trj,2);
     x_ref = trj;
     psi_ref = x(6,1);
     Rpsi = [cos(psi_ref)  -sin(psi_ref);
@@ -86,22 +88,9 @@ if ots
     dxy = Rpsi*trj(10:11,:);
     dpsi = atan2(dxy(2,2:end)-dxy(2,1:end-1),-dxy(1,2:end)+dxy(1,1:end-1));
     x_ref(6,1:end-1) = psi_ref + dpsi;
-    x_ref = reshape(x_ref,[],1);
 
-    N_ots = size(trj,2);
-    dim_ots.N = N_ots-1;
-    dim_ots.nx = size(A,1);
-    dim_ots.nu = size(B,2);
-    dim_ots.ny = size(C,1);
-    dim_ots.ncy = 3;
-    
-    [A_lift_ots,~,B_lift_ots,~]=predmodgen(sysd,dim_ots);            %Generation of prediction model 
-
-    [A_ots,b_ots_lim,b_ots_x0,b_ots_xref] = constraint_matrices_ots(A_lift_ots,B_lift_ots,u_cont_up,u_cont_low,x_con,N_ots);
-
-    [H,h,~]=costgen_ots(A_lift_ots,B_lift_ots,Q,R,dim_ots,x0,P,M,x_ref);
-    b_ots = b_ots_lim - b_ots_x0*x0 + b_ots_xref*x_ref;
-
+    xu_unop = [x_ref; zeros(4,size(x_ref,2))];
+    xu_unop = reshape(xu_unop,[],1);
     C_ots = zeros(16);
     C_ots(6,6) = 1;
     C_ots(10,10) = 1;
@@ -110,25 +99,42 @@ if ots
     
     A_eq = [eye(16)-A, -B;
             C_ots, zeros(size(C_ots,1),size(B,2))];
-    size(A_eq)
-    A_eq = kron(eye(N_ots),A_eq);
     B_eq = [zeros(16,size(trj,2));trj];
-    B_eq = reshape(B_eq,[],1);
 
-    size(H)
-    size(h)
-    size(A_ots)
-    size(b_ots)
-    size(A_eq)
-    size(B_eq)
+    u_up = [3000-params.trim.Omega1;3000-params.trim.Omega2;3000-params.trim.Omega3;pi/2-params.trim.mu];
+    u_low = [-params.trim.Omega1;-params.trim.Omega2;-params.trim.Omega3;-pi/2-params.trim.mu];
+    xu_up = [x_con; u_up];
+    xu_lo = [-x_con; u_low];
+
+    A_eq = kron(eye(N_ots),A_eq);
+    B_eq = reshape(B_eq,[],1);
+    xu_up = repmat(xu_up,N_ots,1);
+    xu_lo = repmat(xu_lo,N_ots,1);
+
+    OTS_weight = eye(20);
+    OTS_weight(13:16,13:16) = 0*eye(4);
+    OTS_weight(10:12,10:12) = 1e8*eye(3);
+
+    cvx_begin
+        variable xu(20*N_ots)
+        minimize( (xu)'*kron(eye(N_ots),OTS_weight)*(xu))
+        subject to 
+            A_eq * xu == B_eq
+            xu <= xu_up
+            xu >= xu_lo
+    cvx_end
     
-    % Solve the OTS optimization
-    opts = optimoptions('quadprog','Display','off','Algorithm','interior-point-convex','LinearSolver','sparse');
-    xu_ref = quadprog(H,h,A_ots,b_ots,A_eq,B_eq,[],[],[],opts);
-    
-    x_ref = xu_ref(1:16,:);
-    u_ref = xu_ref(17:20,:);
-    size(x_ref);
+    xu_ref = reshape(xu,[],N_ots);
+    x_trj = xu_ref(1:16,:);
+    u_trj = xu_ref(17:20,:);
+    size(x_trj);
+    figure(854), clf;
+    subplot(1,2,1)
+    plot(x_trj');
+    legend();
+    subplot(1,2,2)
+    plot(u_trj');
+    legend();
 end
 
 %%
@@ -149,6 +155,17 @@ for k = 1:1:Tvec
         Rpsi = [cos(psi_ref)  -sin(psi_ref);
                 sin(psi_ref)  cos(psi_ref)];
         dxy = Rpsi*trj(10:11,k:k+Np+1);
+        dpsi = atan2(dxy(2,2:end)-dxy(2,1:end-1),-dxy(1,2:end)+dxy(1,1:end-1));
+        x_ref(6,:) = psi_ref + dpsi;
+        x_ref = reshape(x_ref,[],1);
+        [H,h,~]=costgen(A_lift,B_lift,Q,R,dim,x0,P,M,x_ref);
+        b_con = b_con_lim - b_con_x0*x0 + b_con_xref*x_ref;
+    elseif trj_tracking && ots
+        x_ref = x_trj(:,k:k+Np);
+        psi_ref = x(6,k);
+        Rpsi = [cos(psi_ref)  -sin(psi_ref);
+                sin(psi_ref)  cos(psi_ref)];
+        dxy = Rpsi*x_trj(10:11,k:k+Np+1);
         dpsi = atan2(dxy(2,2:end)-dxy(2,1:end-1),-dxy(1,2:end)+dxy(1,1:end-1));
         x_ref(6,:) = psi_ref + dpsi;
         x_ref = reshape(x_ref,[],1);
