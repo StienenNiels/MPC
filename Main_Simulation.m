@@ -19,6 +19,7 @@ variables_struc.payload = false;
 variables_struc.terminal_set = true;
 variables_struc.trj_tracking = false;
 variables_struc.trj = trajectory(variables_struc.T_segment, variables_struc.dt);
+variables_struc.ots = true;
 
 % % Figure used for verifying trajectory
 % figure(85), clf;

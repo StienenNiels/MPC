@@ -1,4 +1,4 @@
-function [H,h,c]=costgen(T,S,Q,R,dim,x0,P,M,x_ref)
+function [H,h,c]=costgen_ots(T,S,Q,R,dim,x0,P,M,x_ref)
 
 % Cost function generation
 % Converts a cost function of the form:
@@ -28,6 +28,6 @@ c = x0'*T'*Qbar*T*x0;
 % h = sparse(S'*Qbar*T*x0 + Mbar'*T*x0);
 
 % Reference tracking version
-h = sparse(S'*Qbar*(T*x0 - x_ref) + Mbar'*(T*x0 - x_ref) -Rbar*u_ref);
+h = sparse(S'*Qbar*(T*x0 - x_ref) + Mbar'*(T*x0 - x_ref));
 
 end
