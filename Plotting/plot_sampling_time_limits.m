@@ -16,8 +16,10 @@ function plot_sampling_time_limits(params)
         hold on
         if i ~= 1
             ylim([-max(abs(ylim))*margin, max(abs(ylim))*margin]);
+            grid on;
         else
             ylim([phi-max(abs(ylim-phi))*margin, phi+max(abs(ylim-phi))*margin]);
+            grid on;
         end
         xlim([0, 4]);
     end

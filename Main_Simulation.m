@@ -132,7 +132,7 @@ for var = var_range
         fieldName = sprintf('trajectory');
         legName   = sprintf('Trajectory');
     case 8 % LQR and MPC comparison
-        variables_struc.x0 = [0 0 0 0 0 -pi 0 0 0 -2 1 2]';
+        variables_struc.x0 = [0 0 0 0 0 -pi 0 0 0 -5 5 30]';
         [t, y, u, trim] = LQR_simulation(variables_struc,params);
         plot_sampling_time(t, y, u, trim, params, true);
         legName   = sprintf('LQR');

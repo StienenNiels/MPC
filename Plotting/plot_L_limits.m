@@ -28,6 +28,7 @@ function plot_L_limits(params)
             ylim([phi-max(abs(ylim-phi))*margin, phi+max(abs(ylim-phi))*margin]);
         end
         xlim([0, 4]);
+        grid on;
     end
 
     % % Show 4 inputs
