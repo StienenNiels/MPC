@@ -117,7 +117,7 @@ if ots
 
     cvx_begin
         variable xu(20*N_ots)
-        minimize( (xu)'*kron(eye(N_ots),OTS_weight)*(xu))
+        minimize( (xu-xu_unop)'*kron(eye(N_ots),OTS_weight)*(xu-xu_unop))
         subject to 
             A_eq * xu == B_eq
             xu <= xu_up
