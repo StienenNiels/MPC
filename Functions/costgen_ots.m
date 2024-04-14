@@ -1,4 +1,4 @@
-function [H,h,c]=costgen(T,S,Q,R,dim,x0,P,M,x_ref)
+function [H,h,c]=costgen_ots(T,S,Q,R,dim,x0,P,M,x_ref)
 
 % Cost function generation
 % Converts a cost function of the form:

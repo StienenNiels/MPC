@@ -12,6 +12,7 @@ terminal_set = variables_struc.terminal_set;
 payload = variables_struc.payload;
 payload_time = variables_struc.payload_time;
 trj_tracking = variables_struc.trj_tracking;
+ots = variables_struc.ots;
 mhat = variables_struc.mhat;
 
 if payload
@@ -76,6 +77,66 @@ u_cont_low = [params.trim.Omega1;params.trim.Omega2;params.trim.Omega3;pi/2+para
 
 [A_con,b_con_lim,b_con_x0,Xf_set_H,Xf_set_h,b_con_xref] = constraint_matrices(A_lift,B_lift,u_cont_up,u_cont_low,x_con,A,B,Q,R,M,Np, terminal_set);
 
+%% OTS calculation offline
+if ots
+    
+    N_ots = size(trj,2);
+    x_ref = trj;
+    psi_ref = x(6,1);
+    Rpsi = [cos(psi_ref)  -sin(psi_ref);
+            sin(psi_ref)  cos(psi_ref)];
+    dxy = Rpsi*trj(10:11,:);
+    dpsi = atan2(dxy(2,2:end)-dxy(2,1:end-1),-dxy(1,2:end)+dxy(1,1:end-1));
+    x_ref(6,1:end-1) = psi_ref + dpsi;
+
+    xu_unop = [x_ref; zeros(4,size(x_ref,2))];
+    xu_unop = reshape(xu_unop,[],1);
+    C_ots = zeros(16);
+    C_ots(6,6) = 1;
+    C_ots(10,10) = 1;
+    C_ots(11,11) = 1;
+    C_ots(12,12) = 1;
+    
+    A_eq = [eye(16)-A, -B;
+            C_ots, zeros(size(C_ots,1),size(B,2))];
+    B_eq = [zeros(16,size(trj,2));trj];
+
+    u_up = [3000-params.trim.Omega1;3000-params.trim.Omega2;3000-params.trim.Omega3;pi/2-params.trim.mu];
+    u_low = [-params.trim.Omega1;-params.trim.Omega2;-params.trim.Omega3;-pi/2-params.trim.mu];
+    xu_up = [x_con; u_up];
+    xu_lo = [-x_con; u_low];
+
+    A_eq = kron(eye(N_ots),A_eq);
+    B_eq = reshape(B_eq,[],1);
+    xu_up = repmat(xu_up,N_ots,1);
+    xu_lo = repmat(xu_lo,N_ots,1);
+
+    OTS_weight = eye(20);
+    OTS_weight(13:16,13:16) = 0*eye(4);
+    OTS_weight(10:12,10:12) = 1e8*eye(3);
+
+    cvx_begin
+        variable xu(20*N_ots)
+        minimize( (xu-xu_unop)'*kron(eye(N_ots),OTS_weight)*(xu-xu_unop))
+        subject to 
+            A_eq * xu == B_eq
+            xu <= xu_up
+            xu >= xu_lo
+    cvx_end
+    
+    xu_ref = reshape(xu,[],N_ots);
+    x_trj = xu_ref(1:16,:);
+    u_trj = xu_ref(17:20,:);
+    size(x_trj);
+    figure(854), clf;
+    subplot(1,2,1)
+    plot(x_trj');
+    legend();
+    subplot(1,2,2)
+    plot(u_trj');
+    legend();
+end
+
 %%
 tic
 ll = 0;
@@ -88,12 +149,23 @@ for k = 1:1:Tvec
 
     % determine reference states based on reference input r
     x0 = x(:,k);
-    if trj_tracking
+    if trj_tracking && ~ots
         x_ref = trj(:,k:k+Np);
         psi_ref = x(6,k);
         Rpsi = [cos(psi_ref)  -sin(psi_ref);
                 sin(psi_ref)  cos(psi_ref)];
         dxy = Rpsi*trj(10:11,k:k+Np+1);
+        dpsi = atan2(dxy(2,2:end)-dxy(2,1:end-1),-dxy(1,2:end)+dxy(1,1:end-1));
+        x_ref(6,:) = psi_ref + dpsi;
+        x_ref = reshape(x_ref,[],1);
+        [H,h,~]=costgen(A_lift,B_lift,Q,R,dim,x0,P,M,x_ref);
+        b_con = b_con_lim - b_con_x0*x0 + b_con_xref*x_ref;
+    elseif trj_tracking && ots
+        x_ref = x_trj(:,k:k+Np);
+        psi_ref = x(6,k);
+        Rpsi = [cos(psi_ref)  -sin(psi_ref);
+                sin(psi_ref)  cos(psi_ref)];
+        dxy = Rpsi*x_trj(10:11,k:k+Np+1);
         dpsi = atan2(dxy(2,2:end)-dxy(2,1:end-1),-dxy(1,2:end)+dxy(1,1:end-1));
         x_ref(6,:) = psi_ref + dpsi;
         x_ref = reshape(x_ref,[],1);
